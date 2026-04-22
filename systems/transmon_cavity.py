@@ -1,0 +1,229 @@
+import numpy as np
+from numba import njit
+
+from openquantum_sde.systems.system import base_system
+
+
+'''Main systems class with system specific parmeters + numba source routines'''
+
+class TransmonCavity(base_system):
+    '''Coupled transmon-cavity system: routines to obtain the 
+    Stochastic Schrödinger equation (SSE).
+
+    This module defines the drift and noise terms for the SSE of 
+    a coupled transmon-cavity system by defining the corresponding
+    drift and noise matrices.
+
+    State of the sytem given by:
+    X: Probability amplitude (Matrix of C coefficients)
+    X.shape = (M, N) with M = transmon level (num atoms), N=photon level
+
+    Main functions
+    ---------
+    drfit_matrix: total drift
+
+    drift_matrix_hamiltonian: computes the Hamiltonian part of the drift.
+
+    drift_matrix_dissipative: computes the dissipative part of the drift.
+
+    noise_matrix: computes the noise (dissipative)
+    '''
+
+    def __init__(self, M, N, k, Omega, epsilon, U):
+        self.M = M
+        self.N = N
+        self.k = k
+        self.Omega = Omega
+        self.epsilon = epsilon
+        self.U = U
+        self.kfill = 1.0 * k
+
+        # Precompute constant arrays used in the class routines
+        self.sqrt_n, self.sqrt_n1, self.sqrt_m_n1, self.sqrt_m1_n, self.sqrt_k_n1 = self.precompute_arrays(self.M,self.N,self.k)
+
+
+    def parameters(self):
+        return self.M, self.N, self.k, self.Omega, self.epsilon, self.U
+
+    def sqrt_arrays(self):
+        return self.sqrt_n, self.sqrt_n1, self.sqrt_m_n1, self.sqrt_m1_n, self.sqrt_k_n1
+    
+    def kernel_args(self):
+        return (self.M, self.N, self.k, self.Omega, self.epsilon, self.U,
+        self.sqrt_n, self.sqrt_n1, self.sqrt_m_n1, self.sqrt_m1_n, self.sqrt_k_n1)
+
+
+    @staticmethod
+    @njit(fastmath = True)
+    def precompute_arrays(M,N,k):
+        ''' Precomputes and return all square roots and constant 
+        arrays used to calculate the drift and noise matrices.'''
+        sqrt_n = np.zeros(N, dtype=np.float64)
+        sqrt_n1 = np.zeros(N, dtype=np.float64)
+        sqrt_m_n1 = np.zeros((M, N), dtype=np.float64)
+        sqrt_m1_n = np.zeros((M, N), dtype=np.float64)
+        sqrt_k_n1 = np.zeros(N, dtype=np.float64)
+
+        for m in range(M):
+            for n in range(N):
+                sqrt_m_n1[m, n] = np.sqrt(m * (n + 1.0))
+                if m < M-1:
+                    sqrt_m1_n[m, n] = np.sqrt((m + 1.0) * n)
+        for n in range(N):
+            sqrt_n[n] = np.sqrt(n)
+            sqrt_n1[n] = np.sqrt(n + 1.0)
+            sqrt_k_n1[n] = np.sqrt(k * (n + 1))
+        return sqrt_n, sqrt_n1, sqrt_m_n1, sqrt_m1_n, sqrt_k_n1
+
+
+    @staticmethod
+    @njit(fastmath = True)
+    def drift_matrix_hamiltonian(X, BX_hamiltonian, 
+                                M, N, k, Omega, epsilon, U, 
+                                sqrt_n, sqrt_n1, sqrt_m_n1, sqrt_m1_n, sqrt_k_n1):
+        '''
+        Calculates the Hamiltonian part of the drift matrix.
+        Takes as input the system parameters and the precalculated
+        square root arrays.
+
+        X: Probability amplitude (Matrix of C coefficients)
+        BX_hamiltonian: Resulting drift matrix by multiplying drift tensor by X.
+        '''
+        for m in range(M):
+            for n in range(N):
+                s = (-1j * 0.5 * U * m * (m - 1.0) - k*n) * X[m, n]
+                if m > 0 and n < N-1:
+                    s += Omega * sqrt_m_n1[m, n] * X[m - 1, n + 1]
+                if m < M-1 and n > 0:
+                    s += -Omega * sqrt_m1_n[m, n] * X[m + 1, n - 1]
+                if n > 0:
+                    s += epsilon * sqrt_n[n] * X[m, n - 1]
+                if n < N-1:
+                    s += -epsilon * sqrt_n1[n] * X[m, n + 1]
+                BX_hamiltonian[m, n] = s
+
+
+    @staticmethod
+    @njit(fastmath = True)
+    def drift_matrix_dissipative(X, BX_dissipative, bx_scalar,
+                                M, N, k, Omega, epsilon, U, 
+                                sqrt_n, sqrt_n1, sqrt_m_n1, sqrt_m1_n, sqrt_k_n1):
+        '''
+        Calculates the dissipative part of the drift matrix.
+        Takes as input only the k parmeter and a precalculated
+        square root array.
+
+        X: Probability amplitude (Matrix of C coefficients)
+        BX2: Resulting drift matrix (second part)
+        bx2: Resulting drift scalar (just a part of BX2 but needed to calculate current)
+        stored as 1D complex np.array to be passed as reference
+        '''
+        # Calculate the drift scalar bx
+        bx = 0.0
+        norm = 0.0
+        for m in range(M):
+            for n in range(N):
+                if n < N-1:
+                    bx += X[m,n] * X[m,n+1].conjugate() * sqrt_n1[n]
+                norm += (X[m,n] * X[m,n].conjugate()).real
+        bx = np.sqrt(k) * bx / norm
+        bx_scalar[0] = 1.0 * bx
+
+        # Calculate the drift matrix BX2 (modifies the passed array)
+        for m in range(M):
+            for n in range(N):
+                if n < N - 1:
+                    BX_dissipative[m,n] = bx * sqrt_k_n1[n] * X[m,n+1]
+
+
+    @staticmethod
+    @njit(fastmath=True)
+    def calculate_drift_matrix(X, BX, BX_hamiltonian, BX_dissipative, bx_scalar,
+                    M, N, k, Omega, epsilon, U, 
+                    sqrt_n, sqrt_n1, sqrt_m_n1, sqrt_m1_n, sqrt_k_n1):
+        '''Calculates the total drift matrix (drift_matrix_hamiltonian + 
+        drift_matrix_dissipative) and stores it on BX'''
+        
+        for m in range(M):
+            for n in range(N):
+                s = (-1j * 0.5 * U * m * (m - 1.0) - k*n) * X[m, n]
+                if m > 0 and n < N-1:
+                    s += Omega * sqrt_m_n1[m, n] * X[m - 1, n + 1]
+                if m < M-1 and n > 0:
+                    s += -Omega * sqrt_m1_n[m, n] * X[m + 1, n - 1]
+                if n > 0:
+                    s += epsilon * sqrt_n[n] * X[m, n - 1]
+                if n < N-1:
+                    s += -epsilon * sqrt_n1[n] * X[m, n + 1]
+                BX_hamiltonian[m, n] = s
+        
+        # Calculate the drift scalar bx
+        bx = 0.0
+        norm = 0.0
+        for m in range(M):
+            for n in range(N):
+                if n < N-1:
+                    bx += X[m,n] * X[m,n+1].conjugate() * sqrt_n1[n]
+                norm += (X[m,n] * X[m,n].conjugate()).real
+        bx = np.sqrt(k) * bx / norm
+        bx_scalar[0] = 1.0 * bx
+
+        # Calculate the drift matrix BX2 (modifies the passed array)
+        for m in range(M):
+            for n in range(N):
+                if n < N - 1:
+                    BX_dissipative[m,n] = bx * sqrt_k_n1[n] * X[m,n+1]
+        
+        BX = BX_hamiltonian + BX_dissipative
+
+
+    @staticmethod
+    @njit(fastmath=True)
+    def calculate_noise_matrix(X, ZX, z, 
+                    M, N, k, Omega, epsilon, U, 
+                    sqrt_n, sqrt_n1, sqrt_m_n1, sqrt_m1_n, sqrt_k_n1):
+        '''
+        Calculates the noise matrix taking as input a complex-valued
+        noise sample z and a precomputed square root array.
+
+        X: Probability amplitude (Matrix of C coefficients)
+        ZX: Resulting noise matrix
+        '''
+        for m in range(M):
+            for n in range(N):
+                if n < N - 1:
+                    ZX[m,n] = z * sqrt_k_n1[n] * X[m,n+1]
+
+
+    @staticmethod
+    @njit
+    def noise_matrix_and_norm(X, ZX, z, 
+                            M, N, k, Omega, epsilon, U, 
+                            sqrt_n, sqrt_n1, sqrt_m_n1, sqrt_m1_n, sqrt_k_n1):
+        '''
+        Equivalent to noise_matrix, but also returns the norm
+        of the noise matrix in case it is needed for adaptive schemes.
+
+        X: Probability amplitude (Matrix of C coefficients)
+        ZX: Resulting noise matrix
+        normZ: norm of matrix (without z)
+        '''
+        znorm = 0.0
+        for m in range(M):
+            for n in range(N-1):
+                g = sqrt_k_n1[n] * X[m, n + 1]
+                znorm = g.real * g.real + g.imag * g.imag
+                ZX[m,n] = z * X[m,n+1]
+        znorm = np.sqrt(znorm)
+        return znorm
+
+
+    @staticmethod
+    @njit
+    def euler_step_current(alpha, z, dt, bx_scalar, k, kfill):
+        '''Calculates current observable to enable comparison with
+        experimental data, z should correspond to the complex valued noise
+        used to calculate the noise matrix ZX.'''
+        dq = bx_scalar[0] * dt + np.sqrt(dt) * z
+        alpha += - 0.5 * kfill * (dt * alpha - np.sqrt(k) * dq)
+        return alpha

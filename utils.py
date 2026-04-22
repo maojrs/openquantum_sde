@@ -1,8 +1,8 @@
-from numba import njit
 import numpy as np
+from numba import njit
 
 
-'''Utilities fucntions'''
+'''Utility functions for matrix operations and noise calculations.'''
 
 @njit
 def complex_noise():
@@ -39,9 +39,8 @@ def calculate_norm(X):
 
 @njit(fastmath = True)
 def calculate_num_atoms(X):
-    '''Calculates number of atoms histogram fro state matrix X. It 
-    assumes X(m,n) is a quantum state matrix, where m corresponds to the
-    number of atoms state and n to the number of photons state. '''
+    '''Calculates number of atoms histogram from state matrix X.
+    X.shape = (M, N) with M = transmon level (num atoms), N=photon level'''
     M, N = X.shape
     num_atoms = np.zeros(M, dtype=np.float64)
     for m in range(M):
