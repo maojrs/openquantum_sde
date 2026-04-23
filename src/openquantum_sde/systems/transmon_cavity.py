@@ -39,7 +39,7 @@ class TransmonCavity(base_system):
         self.kfill = 1.0 * k
 
         # Precompute constant arrays used in the class routines
-        self.sqrt_n, self.sqrt_n1, self.sqrt_m_n1, self.sqrt_m1_n, self.sqrt_k_n1 = self.precompute_arrays(self.M,self.N,self.k)
+        self.sqrt_n, self.sqrt_n1, self.sqrt_m_n1, self.sqrt_m1_n, self.sqrt_k_n1 = self.precompute_arrays(self.M, self.N, self.k)
 
 
     def parameters(self):
@@ -144,6 +144,10 @@ class TransmonCavity(base_system):
         '''Calculates the total drift matrix (drift_matrix_hamiltonian + 
         drift_matrix_dissipative) and stores it on BX'''
         
+        bx = 0.0
+        norm = 0.0
+
+        # Calculate the Hamiltonian drift matrix (modifies the passed array)
         for m in range(M):
             for n in range(N):
                 s = (-1j * 0.5 * U * m * (m - 1.0) - k*n) * X[m, n]
@@ -157,24 +161,21 @@ class TransmonCavity(base_system):
                     s += -epsilon * sqrt_n1[n] * X[m, n + 1]
                 BX_hamiltonian[m, n] = s
         
-        # Calculate the drift scalar bx
-        bx = 0.0
-        norm = 0.0
-        for m in range(M):
-            for n in range(N):
+                # Calculate the drift scalar bx
                 if n < N-1:
                     bx += X[m,n] * X[m,n+1].conjugate() * sqrt_n1[n]
                 norm += (X[m,n] * X[m,n].conjugate()).real
         bx = np.sqrt(k) * bx / norm
         bx_scalar[0] = 1.0 * bx
 
-        # Calculate the drift matrix BX2 (modifies the passed array)
+        # Calculate the dissipative drift matrix (modifies the passed array)
         for m in range(M):
             for n in range(N):
                 if n < N - 1:
                     BX_dissipative[m,n] = bx * sqrt_k_n1[n] * X[m,n+1]
-        
-        BX = BX_hamiltonian + BX_dissipative
+                # Calculates total drift matrix
+                BX[m, n] = BX_hamiltonian[m, n] + BX_dissipative[m, n]
+
 
 
     @staticmethod
@@ -190,9 +191,8 @@ class TransmonCavity(base_system):
         ZX: Resulting noise matrix
         '''
         for m in range(M):
-            for n in range(N):
-                if n < N - 1:
-                    ZX[m,n] = z * sqrt_k_n1[n] * X[m,n+1]
+            for n in range(N-1):
+                ZX[m,n] = z * sqrt_k_n1[n] * X[m,n+1]
 
 
     @staticmethod

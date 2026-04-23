@@ -14,4 +14,9 @@ def euler_maruyama_step(X, BX, ZX, z, dt, system):
     # '''
     system.calculate_drift_matrix(X, BX, system.BX_hamiltonian, system.BX_dissipative, system.bx_scalar, *system.kernel_args())
     system.calculate_noise_matrix(X, ZX, z, *system.kernel_args())
-    X += dt * BX + np.sqrt(dt) * ZX
+    #print(BX)
+    
+    sqdt = np.sqrt(dt)
+    for m in range(system.M):
+        for n in range(system.N):
+            X[m, n] += dt * BX[m, n] + sqdt * ZX[m, n]

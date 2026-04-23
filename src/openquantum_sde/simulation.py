@@ -6,7 +6,8 @@ from openquantum_sde.integrators.euler_maruyama import euler_maruyama_step
 from openquantum_sde.integrators.time_adaptive import choose_dt_from_drift
 
 
-
+# IT GETS AFFECTED NOT HAVING NJIT HERE OR IN EULER MARUYAMA
+#@njit(fastmath=True)
 def simulate_em_adaptive(X0, nsteps_max, dt_min, dt_max, tol,
                                      save_every=1, calculate_current=False,
                                      system=None):
@@ -46,7 +47,13 @@ def simulate_em_adaptive(X0, nsteps_max, dt_min, dt_max, tol,
     kfill = 1.0
 
     for step in range(1, nsteps_max + 1):
-        
+
+        # Main integrator step
+        z = complex_noise()
+        euler_maruyama_step(X, BX, ZX, z, dt, system)
+        t += dt
+
+
         # Renormalize and calculate ideal time-step every 50/100 steps
         if step % 50 == 0 and step > 0:
             norm = calculate_norm(X)
@@ -54,18 +61,10 @@ def simulate_em_adaptive(X0, nsteps_max, dt_min, dt_max, tol,
             #system.calculate_drift_matrix(X, BX, system.BX_hamiltonian, system.BX_dissipative, system.bx_scalar, *system.kernel_args())
             dt = choose_dt_from_drift(BX, dt_min, dt_max, tol, safety)
 
-
-        # Main integrator step
-        z = complex_noise()
-        euler_maruyama_step(X, BX, ZX, z, dt, system)
-
         # Calculate current
         if calculate_current:
             alpha = system.euler_step_current(alpha, z, dt, system.bx_scalar, system.kfill , system.k)
         
-        # Advance time
-        t += dt
-
         # Save data into array
         if step % save_every == 0:
             traj[save_idx] = X
@@ -75,7 +74,7 @@ def simulate_em_adaptive(X0, nsteps_max, dt_min, dt_max, tol,
             save_idx += 1
 
             
-        # Print percentage bar
+        # Print percentage
         if step % print_every == 0:
             print(int(100.0 * step / nsteps_max), '% Done')
 
