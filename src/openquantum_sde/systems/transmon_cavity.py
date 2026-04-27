@@ -142,39 +142,45 @@ class TransmonCavity(base_system):
                     M, N, k, Omega, epsilon, U, 
                     sqrt_n, sqrt_n1, sqrt_m_n1, sqrt_m1_n, sqrt_k_n1):
         '''Calculates the total drift matrix (drift_matrix_hamiltonian + 
-        drift_matrix_dissipative) and stores it on BX'''
-        
+        drift_matrix_dissipative) and stores it on BX. Less readable but 
+        optimized for efficiency.'''
+
         bx = 0.0
         norm = 0.0
 
         # Calculate the Hamiltonian drift matrix (modifies the passed array)
         for m in range(M):
             for n in range(N):
-                s = (-1j * 0.5 * U * m * (m - 1.0) - k*n) * X[m, n]
+                xmn = X[m, n]
+                s = (-1j * 0.5 * U * m * (m - 1.0) - k*n) * xmn
+                if n < N-1:
+                    xmn1 = X[m - 1, n + 1]
+                    s -= epsilon * sqrt_n1[n] * xmn1
+                    bx += xmn * (xmn1.real - 1j * xmn1.imag) * sqrt_n1[n]
+                if n > 0:
+                    s += epsilon * sqrt_n[n] * X[m, n - 1]
                 if m > 0 and n < N-1:
                     s += Omega * sqrt_m_n1[m, n] * X[m - 1, n + 1]
                 if m < M-1 and n > 0:
-                    s += -Omega * sqrt_m1_n[m, n] * X[m + 1, n - 1]
-                if n > 0:
-                    s += epsilon * sqrt_n[n] * X[m, n - 1]
-                if n < N-1:
-                    s += -epsilon * sqrt_n1[n] * X[m, n + 1]
+                    s -= Omega * sqrt_m1_n[m, n] * X[m + 1, n - 1]
                 BX_hamiltonian[m, n] = s
-        
-                # Calculate the drift scalar bx
-                if n < N-1:
-                    bx += X[m,n] * X[m,n+1].conjugate() * sqrt_n1[n]
-                norm += (X[m,n] * X[m,n].conjugate()).real
+
+                 # Calculate the drift scalar bx
+                norm += xmn.real * xmn.real + xmn.imag * xmn.imag
         bx = np.sqrt(k) * bx / norm
         bx_scalar[0] = 1.0 * bx
 
-        # Calculate the dissipative drift matrix (modifies the passed array)
+        # Calculate the dissipative drift matrix and the total drift (modifies the passed array)
         for m in range(M):
             for n in range(N):
                 if n < N - 1:
-                    BX_dissipative[m,n] = bx * sqrt_k_n1[n] * X[m,n+1]
+                    s2 = bx * sqrt_k_n1[n] * X[m,n+1]
+                else:
+                    s2 = 0.0 + 0.0j
+                
+                BX_dissipative[m,n] = s2
                 # Calculates total drift matrix
-                BX[m, n] = BX_hamiltonian[m, n] + BX_dissipative[m, n]
+                BX[m, n] = BX_hamiltonian[m, n] + s2
 
 
 
