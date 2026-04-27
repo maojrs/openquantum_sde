@@ -12,5 +12,5 @@ cd openquantum_sde
 Install using pip:
 
 ```bash
-pip install openquantum_sde
+pip install -e .
 ```
