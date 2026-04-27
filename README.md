@@ -1,4 +1,4 @@
-# openuantum_sde
+# openquantum_sde
 
 Package to solve stochastic Schrödinger equations in open quantum systems
 
