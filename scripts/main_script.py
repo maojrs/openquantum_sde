@@ -13,8 +13,15 @@ from openquantum_sde.simulation import simulate_fixed_dt, simulate_adaptive_dt
 from openquantum_sde.utils import calculate_norm, calculate_num_atoms
 
 # For parallelizations
+numsims = 15
 total_cores = os.cpu_count()
 workers = max(1, total_cores - 2)
+dt_base = 2e-4
+nsteps_base = 500
+save_every_base = 100
+dt = dt_base
+nsteps = nsteps_base
+save_every = save_every_base
 
 # For progress bar
 tqdm.set_lock(RLock())
@@ -25,13 +32,7 @@ maxPh = 250 #250 #400 # 400 #10 #400 #photon
 k = 1.0 
 Omega, epsilon, U = 50.0*k, 12.0*k, 400.0*k 
 
-numsims = 15
-dt_base = 2e-4
-nsteps_base = 500
-save_every_base = 100
-dt = dt_base
-nsteps = nsteps_base
-save_every = save_every_base
+
 
 output_dir = Path("figs")
 output_dir.mkdir(parents=True, exist_ok=True)
