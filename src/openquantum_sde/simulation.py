@@ -7,12 +7,25 @@ from openquantum_sde.integrators.time_adaptive import choose_dt_from_drift
 
 
 def maybe_tqdm(iterable, use_tqdm, tqdm_kwargs=None, **kwargs):
-    '''tqdm function in case printing the progress bar is requested'''
-    if use_tqdm:
-        if tqdm_kwargs is None:
-            tqdm_kwargs = {"desc" : "Simulating"}
-        return tqdm(iterable, **kwargs, **tqdm_kwargs)
-    return iterable
+    if not use_tqdm:
+        return iterable
+
+    if tqdm_kwargs is None:
+        tqdm_kwargs = {"desc": "Simulating"}
+
+    return tqdm(iterable, **kwargs, **tqdm_kwargs)
+
+
+def print_done_at_position(position, label):
+    bar = tqdm(
+        total=1,
+        position=position,
+        leave=True,
+        bar_format="{desc}",
+    )
+    bar.set_description_str(f"{label} done")
+    bar.update(1)
+    bar.close()
 
 
 def simulate_fixed_dt(X0, nsteps, dt, 

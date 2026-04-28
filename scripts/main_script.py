@@ -5,14 +5,18 @@ from tqdm import tqdm
 import os
 from pathlib import Path
 from multiprocessing import RLock
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ProcessPoolExecutor, as_completed
 
 from openquantum_sde.integrators import EulerMaruyama, splittingEMRK4
 from openquantum_sde.systems import TransmonCavity
 from openquantum_sde.simulation import simulate_fixed_dt, simulate_adaptive_dt
 from openquantum_sde.utils import calculate_norm, calculate_num_atoms
 
-# For rogress bar
+# For parallelizations
+total_cores = os.cpu_count()
+workers = max(1, total_cores - 2)
+
+# For progress bar
 tqdm.set_lock(RLock())
 
 # Transmon/cavity systems parameters and initial conditions
@@ -21,8 +25,9 @@ maxPh = 250 #250 #400 # 400 #10 #400 #photon
 k = 1.0 
 Omega, epsilon, U = 50.0*k, 12.0*k, 400.0*k 
 
+numsims = 15
 dt_base = 2e-4
-nsteps_base = 5000
+nsteps_base = 500
 save_every_base = 100
 dt = dt_base
 nsteps = nsteps_base
@@ -31,6 +36,66 @@ save_every = save_every_base
 output_dir = Path("figs")
 output_dir.mkdir(parents=True, exist_ok=True)
 
+
+# Wrapper of simulation to chose the parameters to iterate over
+def parallel_simulation_wrapper(dt, nsteps, save_every, barposition):
+    X0 = np.zeros([maxAt+1,maxPh+1], dtype=np.complex128)
+    X0[0,0] = 1.0 
+
+    # Define integrator
+    myIntegrator = splittingEMRK4()
+
+    # Define system
+    M, N = X0.shape
+    trans_cavity_system = TransmonCavity(M, N, k, Omega, epsilon, U)
+
+    # Parameters for parallelized progress bar
+    tqdm_kwargs = {
+        "position": (barposition - 1)%workers + 1,
+        "leave": False,
+        "desc": f"Sim {barposition}",
+        "dynamic_ncols": True,
+        "ascii": True}
+
+    # Run simulation
+    dt_array, times, traj, traj_current = simulate_fixed_dt(
+        X0 = X0, 
+        nsteps = nsteps,
+        dt = dt, 
+        save_every = save_every, 
+        progress_bar=True,
+        tqdm_kwargs=tqdm_kwargs,
+        calculate_current = True,
+        integrator = myIntegrator,
+        system = trans_cavity_system
+        )
+    
+    # Process data in files perhaps (e.g. how many minima were found)
+    #print("dt=", dt, " Done")
+    plot_figures(dt, times, traj, traj_current)
+
+
+# An additional wrapper that takes as input the variable parameters and returns the simulation
+def run_simulation(params):
+    return parallel_simulation_wrapper(
+        dt=params["dt"],
+        nsteps=params["nsteps"],
+        save_every=params["save_every"],
+        barposition=params["barposition"]
+        )
+
+
+def run_all(param_list, use_progress=True):
+    
+
+    with ProcessPoolExecutor(max_workers=workers) as executor:
+        iterator = executor.map(run_simulation, param_list)
+
+        if use_progress:
+            iterator = tqdm(iterator, total=len(param_list), desc="All simulations", position=0, leave=True)
+
+        return list(iterator)
+    
 
 def plot_figures(dt, times, traj, traj_current):
     dt_percent = str(int(dt_base/dt))
@@ -80,57 +145,8 @@ def plot_figures(dt, times, traj, traj_current):
 
 
 
-
-# Wrapper of simulation to chose the parameters to iterate over
-def parallel_simulation_wrapper(dt, nsteps, save_every, barposition):
-    X0 = np.zeros([maxAt+1,maxPh+1], dtype=np.complex128)
-    X0[0,0] = 1.0 
-
-    # Define integrator
-    myIntegrator = splittingEMRK4()
-
-    # Define system
-    M, N = X0.shape
-    trans_cavity_system = TransmonCavity(M, N, k, Omega, epsilon, U)
-
-    # Parameters for parallelized progress bar
-    tqdm_kwargs = {
-        "position": barposition,
-        "leave": False,
-        "desc": f"Simulation {barposition}",
-        "dynamic_ncols": True,
-        "ascii": True}
-
-    # Run simulation
-    dt_array, times, traj, traj_current = simulate_fixed_dt(
-        X0 = X0, 
-        nsteps = nsteps,
-        dt = dt, 
-        save_every = save_every, 
-        progress_bar=True,
-        tqdm_kwargs=tqdm_kwargs,
-        calculate_current = True,
-        integrator = myIntegrator,
-        system = trans_cavity_system
-        )
-    
-    # Process data in files perhaps (e.g. how many minima were found)
-    #print("dt=", dt, " Done")
-    plot_figures(dt, times, traj, traj_current)
-
-
-# An additional wrapper that takes as input the variable parameters and returns the simulation
-def run_simulation(params):
-    return parallel_simulation_wrapper(
-        dt=params["dt"],
-        nsteps=params["nsteps"],
-        save_every=params["save_every"],
-        barposition=params["barposition"]
-        )
-
  # Create paremeter list
 param_list = []
-numsims = 5
 for i in range(numsims):
     param_list.append({
         "dt": dt,
@@ -143,17 +159,5 @@ for i in range(numsims):
     save_every = int(1.2*save_every)
 
 
-
-def run_all(param_list, use_progress=True, leave_free=1):
-    total_cores = os.cpu_count()
-    workers = max(1, total_cores - leave_free)
-
-    with ProcessPoolExecutor(max_workers=workers) as executor:
-        iterator = executor.map(run_simulation, param_list)
-
-        if use_progress:
-            iterator = tqdm(iterator, total=len(param_list), desc="Simulations", position=0, leave=True)
-
-        return list(iterator)
-
-run_all(param_list, leave_free=2)
+# Run parallelized simulation
+run_all(param_list)
