@@ -18,8 +18,10 @@ Omega, epsilon, U = 50.0*k, 12.0*k, 400.0*k
 
 dt_base = 2e-4
 nsteps_base = 5000000
+save_every_base = 100
 dt = dt_base
 nsteps = nsteps_base
+save_every = save_every_base
 
 output_dir = Path("figs")
 output_dir.mkdir(parents=True, exist_ok=True)
@@ -75,7 +77,7 @@ def plot_figures(dt, times, traj, traj_current):
 
 
 # Wrapper of simulation to chose the parameters to iterate over
-def parallel_simulation_wrapper(dt, nsteps):
+def parallel_simulation_wrapper(dt, nsteps, save_every):
     X0 = np.zeros([maxAt+1,maxPh+1], dtype=np.complex128)
     X0[0,0] = 1.0 
 
@@ -91,7 +93,7 @@ def parallel_simulation_wrapper(dt, nsteps):
         X0 = X0, 
         nsteps = nsteps,
         dt = dt, 
-        save_every = 100, 
+        save_every = save_every, 
         progress_bar=False,
         calculate_current = True,
         integrator = myIntegrator,
@@ -107,28 +109,34 @@ def parallel_simulation_wrapper(dt, nsteps):
 def run_simulation(params):
     return parallel_simulation_wrapper(
         dt=params["dt"],
-        nsteps=params["nsteps"]
+        nsteps=params["nsteps"],
+        save_every=params["save_every"]
         )
 
  # Create paremeter list
 param_list = []
-for i in range(25):
+for i in range(40):
     param_list.append({
         "dt": dt,
         "nsteps": nsteps
+        "save_every": save_every
     })
     dt = 0.8 * dt 
     nsteps = int(1.2*nsteps)
+    save_every = int(1.2*save_every)
 
 
 
-def run_all(param_list, use_progress=True):
-    with ProcessPoolExecutor() as executor:
+def run_all(param_list, use_progress=True, leave_free=1):
+    total_cores = os.cpu_count()
+    workers = max(1, total_cores - leave_free)
+
+    with ProcessPoolExecutor(max_workers=workers) as executor:
         iterator = executor.map(run_simulation, param_list)
-        
+
         if use_progress:
             iterator = tqdm(iterator, total=len(param_list), desc="Simulations")
-        
+
         return list(iterator)
 
-run_all(param_list)
+run_all(param_list, leave_free=2)
