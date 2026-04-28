@@ -16,20 +16,10 @@ def maybe_tqdm(iterable, use_tqdm, tqdm_kwargs=None, **kwargs):
     return tqdm(iterable, **kwargs, **tqdm_kwargs)
 
 
-def print_done_at_position(position, label):
-    bar = tqdm(
-        total=1,
-        position=position,
-        leave=True,
-        bar_format="{desc}",
-    )
-    bar.set_description_str(f"{label} done")
-    bar.update(1)
-    bar.close()
-
-
 def simulate_fixed_dt(X0, nsteps, dt, 
-                      save_every=1, progress_bar=True, tqdm_kwargs=None, calculate_current=False, 
+                      calculate_current=False,
+                      save_every=1, renormalize_every=50,
+                      progress_bar=True, tqdm_kwargs=None,  
                       integrator=None, system=None):
 
     if system == None or integrator == None:
@@ -73,8 +63,8 @@ def simulate_fixed_dt(X0, nsteps, dt,
         t += dt
 
 
-        # Renormalize and calculate ideal time-step every 50/100 steps
-        if step % 50 == 0 and step > 0:
+        # Renormalize every given number of steps
+        if step % renormalize_every == 0 and step > 0:
             norm = calculate_norm(X)
             X /= norm
 
@@ -102,8 +92,10 @@ def simulate_fixed_dt(X0, nsteps, dt,
 
 
 def simulate_adaptive_dt(X0, nsteps_max, dt_min, dt_max, tol,
-                                     save_every=1, progress_bar=True, tqdm_kwargs=None, calculate_current=False,
-                                     integrator=None, system=None):
+                         calculate_current=False,
+                         save_every=1, renormalize_every=50,
+                         progress_bar=True, tqdm_kwargs=None,
+                         integrator=None, system=None):
 
     if system == None or integrator == None:
         raise Exception("Need to specify integrator and/or system and system.kernel_args()")
@@ -147,8 +139,8 @@ def simulate_adaptive_dt(X0, nsteps_max, dt_min, dt_max, tol,
         t += dt
 
 
-        # Renormalize and calculate ideal time-step every 50/100 steps
-        if step % 50 == 0 and step > 0:
+        # Renormalize and calculate ideal time-step every given number of steps
+        if step % renormalize_every == 0 and step > 0:
             norm = calculate_norm(X)
             X /= norm
             #system.calculate_drift_matrix(X, BX, system.BX_hamiltonian, system.BX_dissipative, system.bx_scalar, *system.kernel_args())

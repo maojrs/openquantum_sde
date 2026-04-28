@@ -22,6 +22,8 @@ save_every_base = 100
 dt = dt_base
 nsteps = nsteps_base
 save_every = save_every_base
+finaltime = dt * nsteps
+totalframes = int(nsteps/save_every)
 
 # For progress bar
 tqdm.set_lock(RLock())
@@ -64,6 +66,7 @@ def parallel_simulation_wrapper(dt, nsteps, save_every, barposition):
         nsteps = nsteps,
         dt = dt, 
         save_every = save_every, 
+        renormalize_every = 10,
         progress_bar=True,
         tqdm_kwargs=tqdm_kwargs,
         calculate_current = True,
@@ -73,7 +76,7 @@ def parallel_simulation_wrapper(dt, nsteps, save_every, barposition):
     
     # Process data in files perhaps (e.g. how many minima were found)
     #print("dt=", dt, " Done")
-    plot_figures(dt, times, traj, traj_current)
+    plot_figures(dt, times, traj, traj_current, barposition)
 
 
 # An additional wrapper that takes as input the variable parameters and returns the simulation
@@ -98,8 +101,8 @@ def run_all(param_list, use_progress=True):
         return list(iterator)
     
 
-def plot_figures(dt, times, traj, traj_current):
-    dt_percent = str(int(dt_base/dt))
+def plot_figures(dt, times, traj, traj_current, barposition):
+    simid = str(int(barposition))
     dt_string = f"{dt:.3g}"
 
     # plot current
@@ -111,7 +114,7 @@ def plot_figures(dt, times, traj, traj_current):
     ax.set_xlabel('Time')
     ax.legend()
     ax.grid(True, alpha=0.3)
-    fname2 = "current_timeseries_" + dt_percent + ".png"
+    fname2 = "current_timeseries_" + simid + ".png"
     fig.savefig(output_dir / fname2)
 
     # Plot phase space of current
@@ -123,7 +126,7 @@ def plot_figures(dt, times, traj, traj_current):
     ax2.set_xlim([-maxval,maxval])
     ax2.set_ylim([-maxval,maxval])
     ax2.set_aspect('equal')
-    fname2 = "phase_sapce_trajectory_" + dt_percent + ".png"
+    fname2 = "phase_sapce_trajectory_" + simid + ".png"
     fig2.savefig(output_dir / fname2)
 
     # Number of atoms histogram
@@ -141,7 +144,7 @@ def plot_figures(dt, times, traj, traj_current):
     ax3.set_title('dt=' + dt_string) 
     ax3.set_xlabel("Value")
     ax3.set_ylabel("Frequency")
-    fname3 = "numatoms_histogram_" + dt_percent + ".png"
+    fname3 = "numatoms_histogram_" + simid + ".png"
     fig3.savefig(output_dir / fname3)
 
 
@@ -156,8 +159,8 @@ for i in range(numsims):
         "barposition": i + 1  # for progress bar
     })
     dt = 0.8 * dt 
-    nsteps = int(1.2*nsteps)
-    save_every = int(1.2*save_every)
+    nsteps = int(finaltime/dt)
+    save_every = int(nsteps/totalframes)
 
 
 # Run parallelized simulation
