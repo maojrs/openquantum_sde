@@ -2,13 +2,18 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from tqdm import tqdm
+import os
 from pathlib import Path
+from multiprocessing import RLock
 from concurrent.futures import ProcessPoolExecutor
 
 from openquantum_sde.integrators import EulerMaruyama, splittingEMRK4
 from openquantum_sde.systems import TransmonCavity
 from openquantum_sde.simulation import simulate_fixed_dt, simulate_adaptive_dt
 from openquantum_sde.utils import calculate_norm, calculate_num_atoms
+
+# For rogress bar
+tqdm.set_lock(RLock())
 
 # Transmon/cavity systems parameters and initial conditions
 maxAt = 8 #8 #8 #2 #8 #transmon
@@ -17,7 +22,7 @@ k = 1.0
 Omega, epsilon, U = 50.0*k, 12.0*k, 400.0*k 
 
 dt_base = 2e-4
-nsteps_base = 5000000
+nsteps_base = 5000
 save_every_base = 100
 dt = dt_base
 nsteps = nsteps_base
@@ -77,7 +82,7 @@ def plot_figures(dt, times, traj, traj_current):
 
 
 # Wrapper of simulation to chose the parameters to iterate over
-def parallel_simulation_wrapper(dt, nsteps, save_every):
+def parallel_simulation_wrapper(dt, nsteps, save_every, barposition):
     X0 = np.zeros([maxAt+1,maxPh+1], dtype=np.complex128)
     X0[0,0] = 1.0 
 
@@ -88,13 +93,22 @@ def parallel_simulation_wrapper(dt, nsteps, save_every):
     M, N = X0.shape
     trans_cavity_system = TransmonCavity(M, N, k, Omega, epsilon, U)
 
+    # Parameters for parallelized progress bar
+    tqdm_kwargs = {
+        "position": barposition,
+        "leave": False,
+        "desc": f"Simulation {barposition}",
+        "dynamic_ncols": True,
+        "ascii": True}
+
     # Run simulation
     dt_array, times, traj, traj_current = simulate_fixed_dt(
         X0 = X0, 
         nsteps = nsteps,
         dt = dt, 
         save_every = save_every, 
-        progress_bar=False,
+        progress_bar=True,
+        tqdm_kwargs=tqdm_kwargs,
         calculate_current = True,
         integrator = myIntegrator,
         system = trans_cavity_system
@@ -110,16 +124,19 @@ def run_simulation(params):
     return parallel_simulation_wrapper(
         dt=params["dt"],
         nsteps=params["nsteps"],
-        save_every=params["save_every"]
+        save_every=params["save_every"],
+        barposition=params["barposition"]
         )
 
  # Create paremeter list
 param_list = []
-for i in range(40):
+numsims = 5
+for i in range(numsims):
     param_list.append({
         "dt": dt,
-        "nsteps": nsteps
-        "save_every": save_every
+        "nsteps": nsteps,
+        "save_every": save_every,
+        "barposition": i + 1  # for progress bar
     })
     dt = 0.8 * dt 
     nsteps = int(1.2*nsteps)
@@ -135,7 +152,7 @@ def run_all(param_list, use_progress=True, leave_free=1):
         iterator = executor.map(run_simulation, param_list)
 
         if use_progress:
-            iterator = tqdm(iterator, total=len(param_list), desc="Simulations")
+            iterator = tqdm(iterator, total=len(param_list), desc="Simulations", position=0, leave=True)
 
         return list(iterator)
 

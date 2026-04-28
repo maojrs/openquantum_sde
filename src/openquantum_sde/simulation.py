@@ -6,13 +6,17 @@ from openquantum_sde.utils import calculate_norm, complex_noise
 from openquantum_sde.integrators.time_adaptive import choose_dt_from_drift
 
 
-def maybe_tqdm(iterable, use_tqdm, **kwargs):
-    ''' Wrapper for loops with percentage bar.'''
-    return tqdm(iterable, **kwargs) if use_tqdm else iterable
+def maybe_tqdm(iterable, use_tqdm, tqdm_kwargs=None, **kwargs):
+    '''tqdm function in case printing the progress bar is requested'''
+    if use_tqdm:
+        if tqdm_kwargs is None:
+            tqdm_kwargs = {"desc" : "Simulating"}
+        return tqdm(iterable, **kwargs, **tqdm_kwargs)
+    return iterable
 
 
 def simulate_fixed_dt(X0, nsteps, dt, 
-                      save_every=1, progress_bar=True, calculate_current=False, 
+                      save_every=1, progress_bar=True, tqdm_kwargs=None, calculate_current=False, 
                       integrator=None, system=None):
 
     if system == None or integrator == None:
@@ -48,7 +52,7 @@ def simulate_fixed_dt(X0, nsteps, dt,
     safety = 0.9
     kfill = 1.0
 
-    for step in maybe_tqdm(range(1, nsteps + 1), progress_bar, desc="Simulating"):
+    for step in maybe_tqdm(range(1, nsteps + 1), progress_bar, tqdm_kwargs=tqdm_kwargs):
 
         # Main integrator step
         z = complex_noise()
@@ -85,7 +89,7 @@ def simulate_fixed_dt(X0, nsteps, dt,
 
 
 def simulate_adaptive_dt(X0, nsteps_max, dt_min, dt_max, tol,
-                                     save_every=1, progress_bar=True, calculate_current=False,
+                                     save_every=1, progress_bar=True, tqdm_kwargs=None, calculate_current=False,
                                      integrator=None, system=None):
 
     if system == None or integrator == None:
@@ -122,7 +126,7 @@ def simulate_adaptive_dt(X0, nsteps_max, dt_min, dt_max, tol,
     safety = 0.9
     kfill = 1.0
 
-    for step in maybe_tqdm(range(1, nsteps_max + 1), progress_bar, desc="Simulating"):
+    for step in maybe_tqdm(range(1, nsteps_max + 1), progress_bar, tqdm_kwargs=tqdm_kwargs):
 
         # Main integrator step
         z = complex_noise()
