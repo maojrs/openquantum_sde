@@ -38,6 +38,10 @@ class TransmonCavity(base_system):
         self.U = U
         self.kfill = 1.0 * k
 
+        self.BX_hamiltonian = np.zeros([M,N], dtype=np.complex128)
+        self.BX_dissipative = np.zeros([M,N], dtype=np.complex128)
+        self.ZX2 = np.zeros([M,N], dtype=np.complex128)
+
         # Precompute constant arrays used in the class routines
         self.sqrt_n, self.sqrt_n1, self.sqrt_m_n1, self.sqrt_m1_n, self.sqrt_k_n1 = self.precompute_arrays(self.M, self.N, self.k)
 

@@ -27,12 +27,10 @@ def simulate_fixed_dt(X0, nsteps, dt,
 
     print_every = max(1, nsteps // 20)   # 5% updates
     
-    # Initialize arrays and system containers
+    # Initialize arrays and auxliary system containers
     X = X0.copy()
     BX = np.zeros_like(X)
     ZX = np.zeros_like(X)
-    system.BX_hamiltonian = np.zeros_like(X)
-    system.BX_dissipative = np.zeros_like(X)
     system.bx_scalar = np.zeros(1, dtype=np.complex128) 
 
     # Output parameters
@@ -102,13 +100,10 @@ def simulate_adaptive_dt(X0, nsteps_max, dt_min, dt_max, tol,
     
     print_every = max(1, nsteps_max // 20)   # 5% updates
     
-    # Initialize arrays and system containers
+    # Initialize arrays and auxiliary system containers
     X = X0.copy()
     BX = np.zeros_like(X)
     ZX = np.zeros_like(X)
-    system.BX_hamiltonian = np.zeros_like(X)
-    system.BX_dissipative = np.zeros_like(X)
-    system.bx_scalar = np.zeros(1, dtype=np.complex128) 
 
     # Output parameters
     nsave = nsteps_max // save_every + 1
