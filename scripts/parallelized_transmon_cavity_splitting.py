@@ -5,9 +5,9 @@ from tqdm import tqdm
 import os
 from pathlib import Path
 from multiprocessing import RLock
-from concurrent.futures import ProcessPoolExecutor, as_completed
+from concurrent.futures import ProcessPoolExecutor
 
-from openquantum_sde.integrators import EulerMaruyama, splittingEMRK4
+from openquantum_sde.integrators import EulerMaruyama, splittingRK4EM
 from openquantum_sde.systems import TransmonCavity
 from openquantum_sde.simulation import simulate_fixed_dt, simulate_adaptive_dt
 from openquantum_sde.utils import calculate_norm, calculate_num_atoms
@@ -46,7 +46,7 @@ def parallel_simulation_wrapper(dt, nsteps, save_every, barposition):
     X0[0,0] = 1.0 
 
     # Define integrator
-    myIntegrator = splittingEMRK4()
+    myIntegrator = splittingRK4EM()
 
     # Define system
     M, N = X0.shape

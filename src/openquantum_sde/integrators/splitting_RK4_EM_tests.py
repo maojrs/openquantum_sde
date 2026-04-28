@@ -4,7 +4,7 @@ from openquantum_sde.integrators.integrator import base_integrator
 
 
 
-class splittingRK4EM(base_integrator):
+class splittingRK4EM_tests(base_integrator):
     '''Integrator class for a spliting method using Runge-Kutta 4 for the
     drift part (half time step), then Euler Maruyama for the stochastic part (full
     timstep) and then again RK4 for another half-time step'''
@@ -50,8 +50,30 @@ class splittingRK4EM(base_integrator):
 
     @staticmethod
     def em_noise_step(X, dt, ZX, z, system):
-        system.calculate_noise_matrix(X, ZX, *system.kernel_args())
-        X += z * np.sqrt(dt) * ZX
+        system.calculate_noise_matrix(X, ZX, z, *system.kernel_args())
+        X += np.sqrt(dt) * ZX
+
+
+    @staticmethod
+    def milstein_noise_step(X, dt, ZX, z, system):
+        # Step 1: compute B(X) * z
+        system.calculate_noise_matrix(X, ZX, z, *system.kernel_args())
+
+        dW = np.sqrt(dt) * z
+
+        # Euler-Maruyama part
+        X += dW * ZX
+
+        # Milstein correction 0.5*(B.Nabla)(B(x))(dW^2-dt)
+        
+        # Compute B(B(X)) applied to z*z (elementwise)
+        Z2 = z * z - 1.0   # since (dW^2 - dt)/dt = (z^2 - 1)
+        
+        # apply noise operator again
+        ZX2 = np.zeros_like(X)
+        system.calculate_noise_matrix(ZX, ZX2, Z2, *system.kernel_args())
+
+        X += 0.5 * dt * ZX2    
 
 
     def integrate_step(self, X, BX, ZX, z, dt, system):       
@@ -70,7 +92,7 @@ class splittingRK4EM(base_integrator):
         self.rk4_drift_step(X, 0.5*dt, BX, system)
         
         # Euler-Maruyama part (full time-step)
-        self.em_noise_step(X, dt, ZX, z, system)
+        self.milstein_noise_step(X, dt, ZX, z, system)
 
         # Second half-time step RK4        
         self.rk4_drift_step(X, 0.5*dt, BX, system)

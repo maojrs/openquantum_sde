@@ -82,7 +82,7 @@ class TransmonCavity(base_system):
                                 M, N, k, Omega, epsilon, U, 
                                 sqrt_n, sqrt_n1, sqrt_m_n1, sqrt_m1_n, sqrt_k_n1):
         '''
-        Calculates the Hamiltonian part of the drift matrix.
+        Calculates the Hamiltonian part of the drift matrix .
         Takes as input the system parameters and the precalculated
         square root arrays.
 
@@ -186,42 +186,19 @@ class TransmonCavity(base_system):
 
     @staticmethod
     @njit(fastmath=True)
-    def calculate_noise_matrix(X, ZX, z, 
+    def calculate_noise_matrix(X, ZX, 
                     M, N, k, Omega, epsilon, U, 
                     sqrt_n, sqrt_n1, sqrt_m_n1, sqrt_m1_n, sqrt_k_n1):
         '''
-        Calculates the noise matrix taking as input a complex-valued
-        noise sample z and a precomputed square root array.
+        Calculates the noise matrix taking as input a 
+        precomputed square root array.
 
         X: Probability amplitude (Matrix of C coefficients)
         ZX: Resulting noise matrix
         '''
         for m in range(M):
             for n in range(N-1):
-                ZX[m,n] = z * sqrt_k_n1[n] * X[m,n+1]
-
-
-    @staticmethod
-    @njit
-    def noise_matrix_and_norm(X, ZX, z, 
-                            M, N, k, Omega, epsilon, U, 
-                            sqrt_n, sqrt_n1, sqrt_m_n1, sqrt_m1_n, sqrt_k_n1):
-        '''
-        Equivalent to noise_matrix, but also returns the norm
-        of the noise matrix in case it is needed for adaptive schemes.
-
-        X: Probability amplitude (Matrix of C coefficients)
-        ZX: Resulting noise matrix
-        normZ: norm of matrix (without z)
-        '''
-        znorm = 0.0
-        for m in range(M):
-            for n in range(N-1):
-                g = sqrt_k_n1[n] * X[m, n + 1]
-                znorm = g.real * g.real + g.imag * g.imag
-                ZX[m,n] = z * X[m,n+1]
-        znorm = np.sqrt(znorm)
-        return znorm
+                ZX[m,n] = sqrt_k_n1[n] * X[m,n+1]
 
 
     @staticmethod
