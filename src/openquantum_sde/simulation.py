@@ -1,16 +1,24 @@
 import numpy as np
+from tqdm import tqdm
 from numba import njit
 
 from openquantum_sde.utils import calculate_norm, complex_noise
 from openquantum_sde.integrators.time_adaptive import choose_dt_from_drift
 
 
-def simulate_fixed_dt(X0, nsteps_max, dt, save_every=1, calculate_current=False, integrator=None, system=None):
+def maybe_tqdm(iterable, use_tqdm, **kwargs):
+    ''' Wrapper for loops with percentage bar.'''
+    return tqdm(iterable, **kwargs) if use_tqdm else iterable
+
+
+def simulate_fixed_dt(X0, nsteps, dt, 
+                      save_every=1, progress_bar=True, calculate_current=False, 
+                      integrator=None, system=None):
 
     if system == None or integrator == None:
         raise Exception("Need to specify integrator and/or system and system.kernel_args()")
 
-    print_every = max(1, nsteps_max // 20)   # 5% updates
+    print_every = max(1, nsteps // 20)   # 5% updates
     
     # Initialize arrays and system containers
     X = X0.copy()
@@ -21,7 +29,7 @@ def simulate_fixed_dt(X0, nsteps_max, dt, save_every=1, calculate_current=False,
     system.bx_scalar = np.zeros(1, dtype=np.complex128) 
 
     # Output parameters
-    nsave = nsteps_max // save_every + 1
+    nsave = nsteps // save_every + 1
     traj = np.empty((nsave, system.M, system.N), dtype=np.complex128)
     time_array = np.empty(nsave, dtype=np.float64)
     traj[0] = X
@@ -40,7 +48,7 @@ def simulate_fixed_dt(X0, nsteps_max, dt, save_every=1, calculate_current=False,
     safety = 0.9
     kfill = 1.0
 
-    for step in range(1, nsteps_max + 1):
+    for step in maybe_tqdm(range(1, nsteps + 1), progress_bar, desc="Simulating"):
 
         # Main integrator step
         z = complex_noise()
@@ -66,9 +74,9 @@ def simulate_fixed_dt(X0, nsteps_max, dt, save_every=1, calculate_current=False,
             save_idx += 1
 
             
-        # Print percentage
-        if step % print_every == 0:
-            print(int(100.0 * step / nsteps_max), '% Done')
+        ## Print percentage
+        #if step % print_every == 0:
+        #    print(int(100.0 * step / nsteps), '% Done')
 
     # Calculate array of timesteps (averged over save_every steps)
     dt_array = np.diff(time_array)/save_every
@@ -77,7 +85,7 @@ def simulate_fixed_dt(X0, nsteps_max, dt, save_every=1, calculate_current=False,
 
 
 def simulate_adaptive_dt(X0, nsteps_max, dt_min, dt_max, tol,
-                                     save_every=1, calculate_current=False,
+                                     save_every=1, progress_bar=True, calculate_current=False,
                                      integrator=None, system=None):
 
     if system == None or integrator == None:
@@ -114,7 +122,7 @@ def simulate_adaptive_dt(X0, nsteps_max, dt_min, dt_max, tol,
     safety = 0.9
     kfill = 1.0
 
-    for step in range(1, nsteps_max + 1):
+    for step in maybe_tqdm(range(1, nsteps_max + 1), progress_bar, desc="Simulating"):
 
         # Main integrator step
         z = complex_noise()
@@ -142,9 +150,9 @@ def simulate_adaptive_dt(X0, nsteps_max, dt_min, dt_max, tol,
             save_idx += 1
 
             
-        # Print percentage
-        if step % print_every == 0:
-            print(int(100.0 * step / nsteps_max), '% Done')
+        ## Print percentage
+        #if step % print_every == 0:
+        #    print(int(100.0 * step / nsteps_max), '% Done')
 
     # Calculate array of timesteps (averged over save_every steps)
     dt_array = np.diff(time_array)/save_every
