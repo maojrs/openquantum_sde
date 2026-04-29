@@ -68,7 +68,8 @@ def simulate_fixed_dt(X0, nsteps, dt,
 
         # Calculate current
         if calculate_current:
-            alpha = system.euler_step_current(alpha, z, dt, system.bx_scalar, system.kfill , system.k)
+            system.calculate_drift_scalar(X, system.bx_scalar, *system.kernel_args())
+            alpha = system.backward_euler_step_current(alpha, z, dt, system.bx_scalar, system.kfill , system.k)
         
         # Save data into array
         if step % save_every == 0:

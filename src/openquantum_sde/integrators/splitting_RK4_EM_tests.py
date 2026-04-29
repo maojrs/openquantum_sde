@@ -51,7 +51,7 @@ class splittingRK4EM_tests(base_integrator):
     @staticmethod
     def em_noise_step(X, dt, ZX, z, system):
         system.calculate_noise_matrix(X, ZX, z, *system.kernel_args())
-        X += np.sqrt(dt) * ZX
+        X += z * np.sqrt(dt) * ZX
 
 
     @staticmethod

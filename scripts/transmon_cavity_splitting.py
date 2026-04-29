@@ -30,7 +30,7 @@ def plot_figures(dt, times, traj, traj_current, barposition):
     fig.savefig(output_dir / fname2)
 
     # Plot phase space of current
-    scale = 1.0
+    scale = 0.4 #1.0
     maxval = scale*(abs(epsilon)/k)
     fig2, ax2 = plt.subplots(figsize=(6, 6), dpi=120)
     ax2.plot(traj_current.real, traj_current.imag, lw=0.2, color='k')
@@ -38,7 +38,7 @@ def plot_figures(dt, times, traj, traj_current, barposition):
     ax2.set_xlim([-maxval,maxval])
     ax2.set_ylim([-maxval,maxval])
     ax2.set_aspect('equal')
-    fname2 = "phase_sapce_trajectory_" + simid + ".png"
+    fname2 = "phase_space_trajectory_" + simid + ".png"
     fig2.savefig(output_dir / fname2)
 
     # Number of atoms histogram
@@ -87,10 +87,10 @@ trans_cavity_system = TransmonCavity(M, N, k, Omega, epsilon, U)
 # Run simulation
 dt_array, times, traj, traj_current = simulate_fixed_dt(
     X0 = X0, 
-    nsteps = 50000,
+    nsteps = 400000,
     dt = dt, 
     save_every = 100, 
-    renormalize_every = 5,
+    renormalize_every = 1000,
     progress_bar=True,
     calculate_current = True,
     integrator = myIntegrator,

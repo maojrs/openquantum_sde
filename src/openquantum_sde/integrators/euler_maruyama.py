@@ -18,6 +18,6 @@ class EulerMaruyama(base_integrator):
         # when called *args should be *system.kernel_args()
         # '''
         system.calculate_drift_matrix(X, BX, system.BX_hamiltonian, system.BX_dissipative, system.bx_scalar, *system.kernel_args())
-        system.calculate_noise_matrix(X, ZX, z, *system.kernel_args())
+        system.calculate_noise_matrix(X, ZX, *system.kernel_args())
 
         X += dt * BX + np.sqrt(dt) * ZX 

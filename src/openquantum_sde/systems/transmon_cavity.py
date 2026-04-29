@@ -38,9 +38,11 @@ class TransmonCavity(base_system):
         self.U = U
         self.kfill = 1.0 * k
 
+        # Define auxiliary containers used by integrators
         self.BX_hamiltonian = np.zeros([M,N], dtype=np.complex128)
         self.BX_dissipative = np.zeros([M,N], dtype=np.complex128)
         self.ZX2 = np.zeros([M,N], dtype=np.complex128)
+        self.bx_scalar = np.zeros(1, dtype=np.complex128) 
 
         # Precompute constant arrays used in the class routines
         self.sqrt_n, self.sqrt_n1, self.sqrt_m_n1, self.sqrt_m1_n, self.sqrt_k_n1 = self.precompute_arrays(self.M, self.N, self.k)
@@ -95,15 +97,15 @@ class TransmonCavity(base_system):
         '''
         for m in range(M):
             for n in range(N):
-                s = (-1j * 0.5 * U * m * (m - 1.0) - k*n) * X[m, n]
+                s = (1j * 0.5 * U * m * (m - 1.0) - k*n) * X[m, n]
                 if m > 0 and n < N-1:
                     s += Omega * sqrt_m_n1[m, n] * X[m - 1, n + 1]
                 if m < M-1 and n > 0:
                     s += -Omega * sqrt_m1_n[m, n] * X[m + 1, n - 1]
                 if n > 0:
-                    s += epsilon * sqrt_n[n] * X[m, n - 1]
+                    s -= epsilon * sqrt_n[n] * X[m, n - 1]
                 if n < N-1:
-                    s += -epsilon * sqrt_n1[n] * X[m, n + 1]
+                    s += epsilon * sqrt_n1[n] * X[m, n + 1]
                 BX_hamiltonian[m, n] = s
 
 
@@ -123,7 +125,7 @@ class TransmonCavity(base_system):
         stored as 1D complex np.array to be passed as reference
         '''
         # Calculate the drift scalar bx
-        bx = 0.0
+        bx = 0.0 + 0.0j
         norm = 0.0
         for m in range(M):
             for n in range(N):
@@ -138,6 +140,37 @@ class TransmonCavity(base_system):
             for n in range(N):
                 if n < N - 1:
                     BX_dissipative[m,n] = bx * sqrt_k_n1[n] * X[m,n+1]
+                else:
+                    BX_dissipative[m,n] = 0.0 + 0.0j
+
+
+    @staticmethod
+    @njit(fastmath = True)
+    def calculate_drift_scalar(X, bx_scalar, 
+                     M, N, k, Omega, epsilon, U, 
+                     sqrt_n, sqrt_n1, sqrt_m_n1, sqrt_m1_n, sqrt_k_n1):
+        '''
+        Calculates the dissipative part of the drift matrix.
+        Takes as input only the k parmeter and a precalculated
+        square root array.
+
+        X: Probability amplitude (Matrix of C coefficients)
+        BX2: Resulting drift matrix (second part)
+        bx2: Resulting drift scalar (just a part of BX2 but needed to calculate current)
+        stored as 1D complex np.array to be passed as reference
+        '''
+        # Calculate the drift scalar bx
+        bx = 0.0 + 0.0j
+        norm = 0.0
+        for m in range(M):
+            for n in range(N):
+                xmn = X[m, n]
+                if n < N-1:
+                    xmn1 = X[m, n + 1]
+                    bx += xmn * (xmn1.real - 1j * xmn1.imag) * sqrt_n1[n]
+                norm += xmn.real * xmn.real + xmn.imag * xmn.imag
+        bx = np.sqrt(k) * bx / norm
+        bx_scalar[0] = 1.0 * bx
 
 
     @staticmethod
@@ -149,20 +182,20 @@ class TransmonCavity(base_system):
         drift_matrix_dissipative) and stores it on BX. Less readable but 
         optimized for efficiency.'''
 
-        bx = 0.0
+        bx = 0.0 + 0.0j
         norm = 0.0
 
         # Calculate the Hamiltonian drift matrix (modifies the passed array)
         for m in range(M):
             for n in range(N):
                 xmn = X[m, n]
-                s = (-1j * 0.5 * U * m * (m - 1.0) - k*n) * xmn
+                s = (1j * 0.5 * U * m * (m - 1.0) - k*n) * xmn
                 if n < N-1:
-                    xmn1 = X[m - 1, n + 1]
-                    s -= epsilon * sqrt_n1[n] * xmn1
+                    xmn1 = X[m, n + 1]
+                    s += epsilon * sqrt_n1[n] * xmn1
                     bx += xmn * (xmn1.real - 1j * xmn1.imag) * sqrt_n1[n]
                 if n > 0:
-                    s += epsilon * sqrt_n[n] * X[m, n - 1]
+                    s -= epsilon * sqrt_n[n] * X[m, n - 1]
                 if m > 0 and n < N-1:
                     s += Omega * sqrt_m_n1[m, n] * X[m - 1, n + 1]
                 if m < M-1 and n > 0:
@@ -185,7 +218,6 @@ class TransmonCavity(base_system):
                 BX_dissipative[m,n] = s2
                 # Calculates total drift matrix
                 BX[m, n] = BX_hamiltonian[m, n] + s2
-
 
 
     @staticmethod
@@ -212,5 +244,16 @@ class TransmonCavity(base_system):
         experimental data, z should correspond to the complex valued noise
         used to calculate the noise matrix ZX.'''
         dq = bx_scalar[0] * dt + np.sqrt(dt) * z
-        alpha += - 0.5 * kfill * (dt * alpha - np.sqrt(k) * dq)
+        alpha -= 0.5 * kfill * (dt * alpha - np.sqrt(k) * dq)
+        return alpha
+    
+
+    @staticmethod
+    @njit
+    def backward_euler_step_current(alpha, z, dt, bx_scalar, k, kfill):
+        '''Calculates current observable to enable comparison with
+        experimental data, z should correspond to the complex valued noise
+        used to calculate the noise matrix ZX.'''
+        denom = 1 + 0.5 * kfill *dt
+        alpha = (alpha + 0.5 * kfill * np.sqrt(k) * (bx_scalar[0] * dt + np.sqrt(dt) * z))/denom
         return alpha

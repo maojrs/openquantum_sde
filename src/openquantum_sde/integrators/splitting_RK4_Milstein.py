@@ -28,10 +28,9 @@ class splittingRK4Milstein(splittingRK4EM):
         Z2 = z * z - 1.0   # since (dW^2 - dt)/dt = (z^2 - 1)
         
         # apply noise operator again
-        ZX2 = np.zeros_like(X)
-        system.calculate_noise_matrix(ZX, ZX2, *system.kernel_args())
+        system.calculate_noise_matrix(ZX, system.ZX2, *system.kernel_args())
 
-        X += 0.5 * dt * ZX2 * Z2
+        X += 0.5 * dt * system.ZX2 * Z2
 
 
     def integrate_step(self, X, BX, ZX, z, dt, system):       
@@ -54,5 +53,9 @@ class splittingRK4Milstein(splittingRK4EM):
 
         # Second half-time step RK4        
         self.rk4_drift_step(X, 0.5*dt, BX, system)
+
+        system.calculate_drift_matrix(X, BX, 
+                                system.BX_hamiltonian, system.BX_dissipative, system.bx_scalar, 
+                                *system.kernel_args())
 
 

@@ -14,7 +14,7 @@ class splittingRK4EM(base_integrator):
     def rk4_drift_step(X, dt, BX, system):
         
         # Allocate once per call (clean interface > micro-optimization)
-        K1 = BX
+        K1 = np.zeros_like(X)
         K2 = np.zeros_like(X)
         K3 = np.zeros_like(X)
         K4 = np.zeros_like(X)
@@ -35,13 +35,13 @@ class splittingRK4EM(base_integrator):
 
         # ---- K3 ----
         system.calculate_drift_matrix(TMP, K3, 
-                                      system.BX_hamiltonian, system.BX_dissipative, system.bx_scalar, 
+                                      system.BX_hamiltonian, system.BX_dissipative, system.bx_scalar,
                                       *system.kernel_args())
         TMP = X + dt * K3
 
         # ---- K4 ----
         system.calculate_drift_matrix(TMP, K4, 
-                                      system.BX_hamiltonian, system.BX_dissipative, system.bx_scalar, 
+                                      system.BX_hamiltonian, system.BX_dissipative, system.bx_scalar,
                                       *system.kernel_args())
 
         # ---- final update ----
