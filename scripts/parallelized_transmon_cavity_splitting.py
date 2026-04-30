@@ -45,12 +45,12 @@ def parallel_simulation_wrapper(dt, nsteps, save_every, barposition):
     X0 = np.zeros([maxAt+1,maxPh+1], dtype=np.complex128)
     X0[0,0] = 1.0 
 
-    # Define integrator
-    myIntegrator = splittingRK4EM()
-
     # Define system
     M, N = X0.shape
     trans_cavity_system = TransmonCavity(M, N, k, Omega, epsilon, U)
+
+    # Define integrator
+    myIntegrator = splittingRK4EM(M,N)
 
     # Parameters for parallelized progress bar
     tqdm_kwargs = {

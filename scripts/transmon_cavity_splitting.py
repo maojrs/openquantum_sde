@@ -64,7 +64,9 @@ def plot_figures(dt, times, traj, traj_current, barposition):
 maxAt = 8 #8 #8 #2 #8 #transmon
 maxPh = 250 #250 #400 # 400 #10 #400 #photon
 k = 1.0 
+#Omega, epsilon, U = 50.0*k, 12.0*k, 400.0*k 
 Omega, epsilon, U = 50.0*k, 12.0*k, 400.0*k 
+
 
 
 output_dir = Path("figs_test")
@@ -75,22 +77,22 @@ output_dir.mkdir(parents=True, exist_ok=True)
 X0 = np.zeros([maxAt+1,maxPh+1], dtype=np.complex128)
 X0[0,0] = 1.0 
 
-# Define integrator
-dt = 3e-4
-myIntegrator = splittingRK4Milstein()
-
 # Define system
 M, N = X0.shape
 trans_cavity_system = TransmonCavity(M, N, k, Omega, epsilon, U)
+
+# Define integrator
+dt = 4e-4 #3e-4
+myIntegrator = splittingRK4Milstein(M,N)
 
 
 # Run simulation
 dt_array, times, traj, traj_current = simulate_fixed_dt(
     X0 = X0, 
-    nsteps = 400000,
+    nsteps = 1500000,
     dt = dt, 
     save_every = 100, 
-    renormalize_every = 1000,
+    renormalize_every = 100,
     progress_bar=True,
     calculate_current = True,
     integrator = myIntegrator,

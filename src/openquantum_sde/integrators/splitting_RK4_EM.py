@@ -8,44 +8,45 @@ class splittingRK4EM(base_integrator):
     '''Integrator class for a spliting method using Runge-Kutta 4 for the
     drift part (half time step), then Euler Maruyama for the stochastic part (full
     timstep) and then again RK4 for another half-time step'''
+
+    def __init__(self, M, N):
+        # Allocate containers for RK4 scheme
+        self.K1 = np.zeros([M,N], dtype=np.complex128)
+        self.K2 = np.zeros([M,N], dtype=np.complex128)
+        self.K3 = np.zeros([M,N], dtype=np.complex128)
+        self.K4 = np.zeros([M,N], dtype=np.complex128)
+        self.TMP = np.zeros([M,N], dtype=np.complex128)
+
         
 
-    @staticmethod
-    def rk4_drift_step(X, dt, BX, system):
-        
-        # Allocate once per call (clean interface > micro-optimization)
-        K1 = np.zeros_like(X)
-        K2 = np.zeros_like(X)
-        K3 = np.zeros_like(X)
-        K4 = np.zeros_like(X)
-        TMP = np.zeros_like(X)
+    def rk4_drift_step(self, X, dt, BX, system):
 
 
         # ---- K1 (BX) ----
-        system.calculate_drift_matrix(X, K1, 
+        system.calculate_drift_matrix(X, self.K1, 
                                       system.BX_hamiltonian, system.BX_dissipative, system.bx_scalar, 
                                       *system.kernel_args())
-        TMP = X + 0.5 * dt * K1
+        self.TMP = X + 0.5 * dt * self.K1
 
         # ---- K2 ----
-        system.calculate_drift_matrix(TMP, K2, 
+        system.calculate_drift_matrix(self.TMP, self.K2, 
                                       system.BX_hamiltonian, system.BX_dissipative, system.bx_scalar, 
                                       *system.kernel_args())
-        TMP = X + 0.5 * dt * K2
+        self.TMP = X + 0.5 * dt * self.K2
 
         # ---- K3 ----
-        system.calculate_drift_matrix(TMP, K3, 
+        system.calculate_drift_matrix(self.TMP, self.K3, 
                                       system.BX_hamiltonian, system.BX_dissipative, system.bx_scalar,
                                       *system.kernel_args())
-        TMP = X + dt * K3
+        self.TMP = X + dt * self.K3
 
         # ---- K4 ----
-        system.calculate_drift_matrix(TMP, K4, 
+        system.calculate_drift_matrix(self.TMP, self.K4, 
                                       system.BX_hamiltonian, system.BX_dissipative, system.bx_scalar,
                                       *system.kernel_args())
 
         # ---- final update ----
-        X += (dt / 6.0) * (K1 + 2*K2 + 2*K3 + K4)
+        X += (dt / 6.0) * (self.K1 + 2*self.K2 + 2*self.K3 + self.K4)
 
 
     @staticmethod

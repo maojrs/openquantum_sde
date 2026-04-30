@@ -7,6 +7,7 @@ from openquantum_sde.integrators.time_adaptive import choose_dt_from_drift
 
 
 def maybe_tqdm(iterable, use_tqdm, tqdm_kwargs=None, **kwargs):
+    '''For correct display of progres bar (serial and parallelized siulations)'''
     if not use_tqdm:
         return iterable
 
@@ -60,16 +61,16 @@ def simulate_fixed_dt(X0, nsteps, dt,
         integrator.integrate_step(X, BX, ZX, z, dt, system)
         t += dt
 
-
-        # Renormalize every given number of steps
-        if step % renormalize_every == 0 and step > 0:
-            norm = calculate_norm(X)
-            X /= norm
-
         # Calculate current
         if calculate_current:
             system.calculate_drift_scalar(X, system.bx_scalar, *system.kernel_args())
             alpha = system.backward_euler_step_current(alpha, z, dt, system.bx_scalar, system.kfill , system.k)
+
+        
+        # Renormalize every given number of steps
+        if step % renormalize_every == 0 and step > 0:
+            norm = calculate_norm(X)
+            X /= norm
         
         # Save data into array
         if step % save_every == 0:
@@ -134,7 +135,12 @@ def simulate_adaptive_dt(X0, nsteps_max, dt_min, dt_max, tol,
         integrator.integrate_step(X, BX, ZX, z, dt, system)
         t += dt
 
+        # Calculate current
+        if calculate_current:
+            system.calculate_drift_scalar(X, system.bx_scalar, *system.kernel_args())
+            alpha = system.backward_euler_step_current(alpha, z, dt, system.bx_scalar, system.kfill , system.k) 
 
+        
         # Renormalize and calculate ideal time-step every given number of steps
         if step % renormalize_every == 0 and step > 0:
             norm = calculate_norm(X)
@@ -142,9 +148,6 @@ def simulate_adaptive_dt(X0, nsteps_max, dt_min, dt_max, tol,
             #system.calculate_drift_matrix(X, BX, system.BX_hamiltonian, system.BX_dissipative, system.bx_scalar, *system.kernel_args())
             dt = choose_dt_from_drift(BX, dt_min, dt_max, tol, safety)
 
-        # Calculate current
-        if calculate_current:
-            alpha = system.euler_step_current(alpha, z, dt, system.bx_scalar, system.kfill , system.k)
         
         # Save data into array
         if step % save_every == 0:
