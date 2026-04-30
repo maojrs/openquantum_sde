@@ -1,6 +1,5 @@
 import numpy as np
 from tqdm import tqdm
-from numba import njit
 
 from openquantum_sde.utils import calculate_norm, complex_noise
 from openquantum_sde.integrators.time_adaptive import choose_dt_from_drift
@@ -27,7 +26,7 @@ def simulate_fixed_dt(X0, nsteps, dt,
         raise Exception("Need to specify integrator and/or system and system.kernel_args()")
 
     print_every = max(1, nsteps // 20)   # 5% updates
-    
+
     # Initialize arrays and auxliary system containers
     X = X0.copy()
     BX = np.zeros_like(X)
@@ -49,6 +48,9 @@ def simulate_fixed_dt(X0, nsteps, dt,
 
     # Time parameters
     t = 0.0
+
+    # Run precomputations that might be needed by integrator
+    integrator.precomputations(dt, system)
     
     # Other parameters
     safety = 0.9
@@ -123,6 +125,9 @@ def simulate_adaptive_dt(X0, nsteps_max, dt_min, dt_max, tol,
     # Time parameters
     t = 0.0
     dt = 1.0*dt_min
+
+    # Run precomputations that might be needed by integrator
+    integrator.precomputations(dt, system)
     
     # Other parameters
     safety = 0.9
@@ -147,6 +152,8 @@ def simulate_adaptive_dt(X0, nsteps_max, dt_min, dt_max, tol,
             X /= norm
             #system.calculate_drift_matrix(X, BX, system.BX_hamiltonian, system.BX_dissipative, system.bx_scalar, *system.kernel_args())
             dt = choose_dt_from_drift(BX, dt_min, dt_max, tol, safety)
+            # Update required computations needed by integrators using new dt 
+            integrator.recomputations_newdt(dt, system)
 
         
         # Save data into array

@@ -38,10 +38,13 @@ class TransmonCavity(base_system):
         self.U = U
         self.kfill = 1.0 * k
 
-        # Define auxiliary containers used by integrators
+        # Define auxiliary containers used by integrators 
+        # (add more if needed, to avoid defining arrays at integration steps)
+        self.expdiagBX = np.zeros([M,N], dtype=np.complex128)
+        self.BXtmp = np.zeros([M,N], dtype=np.complex128)
         self.BX_hamiltonian = np.zeros([M,N], dtype=np.complex128)
         self.BX_dissipative = np.zeros([M,N], dtype=np.complex128)
-        self.ZX2 = np.zeros([M,N], dtype=np.complex128)
+        self.ZXtmp = np.zeros([M,N], dtype=np.complex128)
         self.bx_scalar = np.zeros(1, dtype=np.complex128) 
 
         # Precompute constant arrays used in the class routines
@@ -80,6 +83,25 @@ class TransmonCavity(base_system):
             sqrt_n1[n] = np.sqrt(n + 1.0)
             sqrt_k_n1[n] = np.sqrt(k * (n + 1))
         return sqrt_n, sqrt_n1, sqrt_m_n1, sqrt_m1_n, sqrt_k_n1
+    
+
+    @staticmethod
+    @njit(fastmath = True)
+    def compute_exponential_drift_matrix_diagonal(expdiagBX, dt,
+                                M, N, k, Omega, epsilon, U, 
+                                sqrt_n, sqrt_n1, sqrt_m_n1, sqrt_m1_n, sqrt_k_n1):
+        '''
+        Calculates the diagonal part of the drift matrix .
+        Takes as input the system parameters and the precalculated
+        square root arrays. Only needs to be calculted once for a given dt.
+
+        X: Probability amplitude (Matrix of C coefficients)
+        BX_hamiltonian: Resulting drift matrix by multiplying drift tensor by X.
+        '''
+        for m in range(M):
+            for n in range(N):
+                s = (1j * 0.5 * U * m * (m - 1.0) - k*n) ###ADDED 0.5 HERE TEST
+                expdiagBX[m,n] = np.exp(dt * s)
 
 
     @staticmethod
@@ -88,7 +110,7 @@ class TransmonCavity(base_system):
                                 M, N, k, Omega, epsilon, U, 
                                 sqrt_n, sqrt_n1, sqrt_m_n1, sqrt_m1_n, sqrt_k_n1):
         '''
-        Calculates the Hamiltonian part of the drift matrix .
+        Calculates the Hamiltonian part (+diagonal dissipations) of the drift matrix .
         Takes as input the system parameters and the precalculated
         square root arrays.
 
@@ -170,6 +192,52 @@ class TransmonCavity(base_system):
                 norm += xmn.real * xmn.real + xmn.imag * xmn.imag
         bx = np.sqrt(k) * bx / norm
         bx_scalar[0] = 1.0 * bx
+
+
+    @staticmethod
+    @njit(fastmath=True)
+    def calculate_drift_matrix_nondiagonal(X, BX, bx_scalar,
+                    M, N, k, Omega, epsilon, U, 
+                    sqrt_n, sqrt_n1, sqrt_m_n1, sqrt_m1_n, sqrt_k_n1):
+        '''Calculates the total drift matrix (drift_matrix_hamiltonian + 
+        drift_matrix_dissipative) and stores it on BX. Less readable but 
+        optimized for efficiency.'''
+
+        bx = 0.0 + 0.0j
+        norm = 0.0
+
+        # Calculate the Hamiltonian drift matrix (modifies the passed array)
+        for m in range(M):
+            for n in range(N):
+                xmn = X[m, n]
+                s = 0.0 + 0.0j
+                if n < N-1:
+                    xmn1 = X[m, n + 1]
+                    s -= epsilon * sqrt_n1[n] * xmn1
+                    bx += xmn * (xmn1.real - 1j * xmn1.imag) * sqrt_n1[n]
+                if n > 0:
+                    s += epsilon * sqrt_n[n] * X[m, n - 1]
+                if m > 0 and n < N-1:
+                    s += Omega * sqrt_m_n1[m, n] * X[m - 1, n + 1]
+                if m < M-1 and n > 0:
+                    s -= Omega * sqrt_m1_n[m, n] * X[m + 1, n - 1]
+                BX[m, n] = s
+
+                 # Calculate the drift scalar bx
+                norm += xmn.real * xmn.real + xmn.imag * xmn.imag
+        bx = np.sqrt(k) * bx / norm
+        bx_scalar[0] = 1.0 * bx
+
+        # Calculate the dissipative drift matrix and the total drift (modifies the passed array)
+        for m in range(M):
+            for n in range(N):
+                if n < N - 1:
+                    s2 = bx * sqrt_k_n1[n] * X[m,n+1]
+                else:
+                    s2 = 0.0 + 0.0j
+                
+                # Calculates total drift matrix
+                BX[m, n] += s2
 
 
     @staticmethod

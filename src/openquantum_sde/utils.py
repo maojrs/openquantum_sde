@@ -25,6 +25,14 @@ def complex_noise_matrix(Z):
 
 
 @njit(fastmath = True)
+def diag_matrix_exponential(M,N,D, expD):
+    '''Calculates matrix expoenntial expD of a diagonal matrix D '''
+    for m in range(M):
+        for n in range(N):
+            expD[m,n] = np.exp(D[m,n])
+
+
+@njit(fastmath = True)
 def calculate_norm(X):
     '''Calculates and returns norm of matrix X'''
     norm = 0.0

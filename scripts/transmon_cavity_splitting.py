@@ -4,7 +4,8 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 from pathlib import Path
 
-from openquantum_sde.integrators import EulerMaruyama, splittingRK4EM, splittingRK4Milstein, splittingRK4EM_tests
+from openquantum_sde.integrators import EulerMaruyama, splittingRK4EM, splittingRK4Milstein 
+from openquantum_sde.integrators import stochasticHeun, splittingExactHeun
 from openquantum_sde.systems import TransmonCavity
 from openquantum_sde.simulation import simulate_fixed_dt, simulate_adaptive_dt
 from openquantum_sde.utils import calculate_norm, calculate_num_atoms
@@ -30,7 +31,7 @@ def plot_figures(dt, times, traj, traj_current, barposition):
     fig.savefig(output_dir / fname2)
 
     # Plot phase space of current
-    scale = 0.4 #1.0
+    scale = 0.8 #1.0
     maxval = scale*(abs(epsilon)/k)
     fig2, ax2 = plt.subplots(figsize=(6, 6), dpi=120)
     ax2.plot(traj_current.real, traj_current.imag, lw=0.2, color='k')
@@ -82,14 +83,16 @@ M, N = X0.shape
 trans_cavity_system = TransmonCavity(M, N, k, Omega, epsilon, U)
 
 # Define integrator
-dt = 4e-4 #3e-4
-myIntegrator = splittingRK4Milstein(M,N)
+dt = 2e-5 #4e-4, 3e-4
+#myIntegrator = splittingRK4Milstein(M,N)
+#myIntegrator = stochasticHeun()
+myIntegrator = splittingExactHeun()
 
 
-# Run simulation
+# Run simulation with fixed dt
 dt_array, times, traj, traj_current = simulate_fixed_dt(
     X0 = X0, 
-    nsteps = 1500000,
+    nsteps = 3000000,
     dt = dt, 
     save_every = 100, 
     renormalize_every = 100,
@@ -99,8 +102,23 @@ dt_array, times, traj, traj_current = simulate_fixed_dt(
     system = trans_cavity_system
     )
 
+# Run simulation with adaptive dt
+'''dt_array, times, traj, traj_current = simulate_adaptive_dt(
+    X0 = X0, 
+    nsteps_max = 150000,
+    dt_min = 8e-5, #2e-4,
+    dt_max = 1e-4, 
+    tol = 0.8,
+    save_every = 100, 
+    renormalize_every = 100,
+    progress_bar=True,
+    calculate_current = True,
+    integrator = myIntegrator,
+    system = trans_cavity_system
+    )'''
+
 # Plot figures
-plot_figures(dt, times, traj, traj_current, 1)
+plot_figures(dt, times, traj, traj_current, 2)
 
 
 
