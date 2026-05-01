@@ -100,7 +100,7 @@ class TransmonCavity(base_system):
         '''
         for m in range(M):
             for n in range(N):
-                s = (1j * 0.5 * U * m * (m - 1.0) - k*n) ###ADDED 0.5 HERE TEST
+                s = (1j * 0.5 * U * m * (m - 1.0) - k*n) 
                 expdiagBX[m,n] = np.exp(dt * s)
 
 
@@ -305,6 +305,26 @@ class TransmonCavity(base_system):
                     ZX[m,n] = sqrt_k_n1[n] * X[m,n+1]
                 else:
                     ZX[m,n] = 0.0 + 0.0j
+    
+
+    @staticmethod
+    @njit(fastmath=True)
+    def calculate_noise_matrix_shifted(X, ZX, bx_scalar,
+                    M, N, k, Omega, epsilon, U, 
+                    sqrt_n, sqrt_n1, sqrt_m_n1, sqrt_m1_n, sqrt_k_n1):
+        '''
+        Calculates the noise matrix taking as input a 
+        precomputed square root array.
+
+        X: Probability amplitude (Matrix of C coefficients)
+        ZX: Resulting noise matrix
+        '''
+        for m in range(M):
+            for n in range(N):
+                if n < N - 1:
+                    ZX[m,n] = sqrt_k_n1[n] * X[m,n+1] - bx_scalar[0] * X[m,n]
+                else:
+                    ZX[m,n] = 0.0 + 0.0j - bx_scalar[0]*X[m,n]
 
 
     @staticmethod
@@ -330,3 +350,6 @@ class TransmonCavity(base_system):
         denom = (1 + 0.5 * kfill *dt)
         alpha = (alpha + 0.5 * kfill * np.sqrt(k) * dq)/denom
         return alpha
+    
+
+    
