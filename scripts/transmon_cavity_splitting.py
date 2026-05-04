@@ -83,7 +83,7 @@ M, N = X0.shape
 trans_cavity_system = TransmonCavity(M, N, k, Omega, epsilon, U)
 
 # Define integrator
-dt = 2e-4 #5e-5#2e-4 #8e-5 #8e-5 #4e-4, 3e-4
+dt = 5e-5 #1e-4 #2e-5 #2e-4 #5e-5#2e-4 #8e-5 #8e-5 #4e-4, 3e-4
 #myIntegrator = splittingRK4Milstein(M,N)
 #myIntegrator = stochasticHeun()
 #myIntegrator = splittingExactHeun(taming=True)
@@ -92,11 +92,10 @@ myIntegrator = splittingExactSemiEuler() #taming=True)
 #myIntegrator = splittingExactMilstein(taming=True)
 
 
-
 # Run simulation with fixed dt
 dt_array, times, traj, traj_current = simulate_fixed_dt(
     X0 = X0, 
-    nsteps = 1000000, #4000000, #1000000,
+    nsteps = 20000000, #4000000, #1000000,
     dt = dt, 
     save_every = 100, 
     renormalize_every = 100,
@@ -105,6 +104,7 @@ dt_array, times, traj, traj_current = simulate_fixed_dt(
     integrator = myIntegrator,
     system = trans_cavity_system
     )
+
 
 # Run simulation with adaptive dt
 '''dt_array, times, traj, traj_current = simulate_adaptive_dt(
@@ -122,7 +122,7 @@ dt_array, times, traj, traj_current = simulate_fixed_dt(
     )'''
 
 # Plot figures
-plot_figures(dt, times, traj, traj_current, 1)
+plot_figures(dt, times, traj, traj_current, 5)
 
 
 

@@ -8,8 +8,8 @@ from openquantum_sde.integrators import splittingExactEuler
 
 class splittingExactSemiEuler(splittingExactEuler):
     '''Integrator class for splitting method, using exact method for matrix diagonal for
-    half time step, then semi-implicit Euler method for remaining terms for a full time step plus another
-    half time step of the exact solution.'''
+    half time step, then mid-point Euler method for drift (Euler-Maruyama for noise), 
+    then remaining terms for a full time step plus another half time step of the exact solution.'''
 
 
 

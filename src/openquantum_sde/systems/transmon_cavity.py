@@ -100,7 +100,7 @@ class TransmonCavity(base_system):
         '''
         for m in range(M):
             for n in range(N):
-                s = (1j * 0.5 * U * m * (m - 1.0) - k*n) 
+                s = (1j * 0.5 * U * m * (m - 1.0) - k * n) 
                 expdiagBX[m,n] = np.exp(dt * s)
 
 
@@ -225,14 +225,15 @@ class TransmonCavity(base_system):
 
                  # Calculate the drift scalar bx
                 norm += xmn.real * xmn.real + xmn.imag * xmn.imag
-        bx = np.sqrt(k) * bx / norm
+        bx = np.sqrt(2 * k) * bx / norm
         bx_scalar[0] = 1.0 * bx
 
         # Calculate the dissipative drift matrix and the total drift (modifies the passed array)
         for m in range(M):
             for n in range(N):
                 if n < N - 1:
-                    s2 = bx * sqrt_k_n1[n] * X[m,n+1]
+                    #s2 = bx * sqrt_k_n1[n] * X[m,n+1]
+                    s2 = np.sqrt(2) * bx * sqrt_k_n1[n] * X[m,n+1] #MODIFIED TEST
                 else:
                     s2 = 0.0 + 0.0j
                 
@@ -302,7 +303,7 @@ class TransmonCavity(base_system):
         for m in range(M):
             for n in range(N):
                 if n < N - 1:
-                    ZX[m,n] = sqrt_k_n1[n] * X[m,n+1]
+                    ZX[m,n] = np.sqrt(2) * sqrt_k_n1[n] * X[m,n+1]  #MODIFIED TEST
                 else:
                     ZX[m,n] = 0.0 + 0.0j
     
