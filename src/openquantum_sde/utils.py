@@ -58,3 +58,19 @@ def calculate_num_atoms(X):
             norm_sqr += g.real * g.real + g.imag * g.imag
         num_atoms[m] = norm_sqr
     return num_atoms
+
+
+@njit(fastmath = True)
+def calculate_num_photons(X):
+    '''Calculates expected value of number of photons from state matrix X.
+    X.shape = (M, N) with M = transmon level (num atoms), N=photon level'''
+    M, N = X.shape
+    num_photons = 0.0
+    norm = 0.0
+    for m in range(M):
+        for n in range(N):
+            xmn = X[m,n]
+            num_photons += n * xmn * (xmn.real - 1.0j*xmn.imag)
+            norm += xmn.real * xmn.real + xmn.imag * xmn.imag
+    num_photons = num_photons/norm
+    return num_photons
