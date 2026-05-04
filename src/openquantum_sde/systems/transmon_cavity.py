@@ -335,7 +335,7 @@ class TransmonCavity(base_system):
         to the complex valued noise used to calculate the noise matrix ZX.
         Note bx_scalar must be evaluated a start of time step'''
         dq = bx_scalar[0] * dt + np.sqrt(dt) * z 
-        alpha -= 0.5 * kfill * (dt * alpha - dq/np.sqrt(2))
+        alpha -= 0.5 * kfill * (dt * alpha - dq*np.sqrt(0.5))
         return alpha
     
 
@@ -348,7 +348,7 @@ class TransmonCavity(base_system):
         Note bx_scalar must be evaluated a end of time step'''
         dq = bx_scalar[0] * dt + np.sqrt(dt) * z 
         denom = (1 + 0.5 * kfill *dt)
-        alpha = (alpha + 0.5 * kfill * np.sqrt(k) * dq)/denom
+        alpha = (alpha + 0.5 * kfill * np.sqrt(0.5*k) * dq)/denom
         return alpha
     
 
