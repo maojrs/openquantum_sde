@@ -17,12 +17,12 @@ class stochasticHeun(base_integrator):
         
         # when called *args should be *system.kernel_args()
         # '''
-        system.calculate_drift_matrix(X, system.BXtmp, system.BX_hamiltonian, system.BX_dissipative, system.bx_scalar, *system.kernel_args())
+        system.calculate_drift_matrix(X, system.BXtmp, system.BX_coherent, system.BX_noncoherent, system.bx_scalar, *system.kernel_args())
         system.calculate_noise_matrix(X, system.ZXtmp, *system.kernel_args())
 
         predictor = X + dt * system.BXtmp + z * np.sqrt(dt) * system.ZXtmp 
 
-        system.calculate_drift_matrix(predictor, BX, system.BX_hamiltonian, system.BX_dissipative, system.bx_scalar, *system.kernel_args())
+        system.calculate_drift_matrix(predictor, BX, system.BX_coherent, system.BX_noncoherent, system.bx_scalar, *system.kernel_args())
         system.calculate_noise_matrix(predictor, ZX, *system.kernel_args())
         
         

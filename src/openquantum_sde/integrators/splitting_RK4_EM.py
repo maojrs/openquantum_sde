@@ -24,25 +24,25 @@ class splittingRK4EM(base_integrator):
 
         # ---- K1 (BX) ----
         system.calculate_drift_matrix(X, self.K1, 
-                                      system.BX_hamiltonian, system.BX_dissipative, system.bx_scalar, 
+                                      system.BX_coherent, system.BX_noncoherent, system.bx_scalar, 
                                       *system.kernel_args())
         self.TMP = X + 0.5 * dt * self.K1
 
         # ---- K2 ----
         system.calculate_drift_matrix(self.TMP, self.K2, 
-                                      system.BX_hamiltonian, system.BX_dissipative, system.bx_scalar, 
+                                      system.BX_coherent, system.BX_noncoherent, system.bx_scalar, 
                                       *system.kernel_args())
         self.TMP = X + 0.5 * dt * self.K2
 
         # ---- K3 ----
         system.calculate_drift_matrix(self.TMP, self.K3, 
-                                      system.BX_hamiltonian, system.BX_dissipative, system.bx_scalar,
+                                      system.BX_coherent, system.BX_noncoherent, system.bx_scalar,
                                       *system.kernel_args())
         self.TMP = X + dt * self.K3
 
         # ---- K4 ----
         system.calculate_drift_matrix(self.TMP, self.K4, 
-                                      system.BX_hamiltonian, system.BX_dissipative, system.bx_scalar,
+                                      system.BX_coherent, system.BX_noncoherent, system.bx_scalar,
                                       *system.kernel_args())
 
         # ---- final update ----

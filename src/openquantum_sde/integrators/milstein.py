@@ -39,7 +39,7 @@ class Milstein(base_integrator):
         
         # when called *args should be *system.kernel_args()
         # '''
-        system.calculate_drift_matrix(X, BX, system.BX_hamiltonian, system.BX_dissipative, system.bx_scalar, *system.kernel_args())
+        system.calculate_drift_matrix(X, BX, system.BX_coherent, system.BX_noncoherent, system.bx_scalar, *system.kernel_args())
 
         # Milstein part (full time-step)
         self.milstein_noise_step(X, dt, ZX, z, system)
