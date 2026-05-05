@@ -89,3 +89,40 @@ def filter_trajectory(traj, traj_current, minima, tolerance):
     filtered_traj = traj[mask]
 
     return filtered_traj
+
+
+def find_minima_fast(traj_current, bins=5, threshold_ratio=0.005):
+    '''Fast estimation of minima using 2D histogram peak detection. Not super 
+    accurate. More complex algorithms like DBSCAN can be implemented outside 
+    of the library.
+    
+    traj_current : 1D complex trajectory
+    bins : Number of bins per dimension
+    threshold_ratio : Keep bins with counts >= max_count * threshold_ratio
+    
+    Returns
+    minimas : array of complex numbers
+    '''
+    
+    # Convert to 2D
+    x = traj_current.real
+    y = traj_current.imag
+    
+    # 2D histogram
+    H, xedges, yedges = np.histogram2d(x, y, bins=bins)
+    
+    # Find high-density bins
+    max_count = H.max()
+    mask = H >= (threshold_ratio * max_count)
+    
+    # Get bin centers
+    centers = []
+    for i, j in zip(*np.where(mask)):
+        cx = 0.5 * (xedges[i] + xedges[i+1])
+        cy = 0.5 * (yedges[j] + yedges[j+1])
+        centers.append(cx + 1j * cy)
+    
+    minimas = np.array(centers)
+    print(minimas)
+    
+    return minimas

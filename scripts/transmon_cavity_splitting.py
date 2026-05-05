@@ -9,7 +9,7 @@ from openquantum_sde.integrators import stochasticHeun, splittingExactEuler, spl
 from openquantum_sde.integrators import splittingExactHeun, splittingExactMilstein
 from openquantum_sde.systems import TransmonCavity
 from openquantum_sde.simulation import simulate_fixed_dt, simulate_adaptive_dt
-from openquantum_sde.utils import calculate_norm, calculate_num_atoms
+from openquantum_sde.utils import calculate_norm, calculate_num_atoms, find_minima_fast
 from openquantum_sde.plotting import plot_current, plot_current_phasespace, plot_numatoms_histogram, plot_numatoms_histogram_minimas
 
 
@@ -22,26 +22,29 @@ def plot_figures(dt, times, traj, traj_current, simid):
         simid = str(int(simid))
     dt_string = f"{dt:.3g}"
 
+    minimas = [0.0 + 0.0j, 2.15 + 4.6j, 9.85+ 4.6j]
+
+
     title1 = 'dt=' + dt_string
     fname1 = "current_timeseries_" + simid + ".png"
     plot_current(times, traj_current, output_dir, fname1, title = title1, savefig = True)
 
     title2 = 'dt=' + dt_string
     fname2 = "phase_space_trajectory_" + simid + ".png"
-    plot_current_phasespace(traj_current, output_dir, fname2, maxval = abs(epsilon)/k, title = title2, savefig = True)
+    lim = abs(epsilon)/k
+    plot_current_phasespace(traj_current, output_dir, fname2, pltlims = [-0.5*lim, lim], minimas = minimas, title = title2, savefig = True)
 
-    title3 = 'dt=' + dt_string
-    fname3 = "numatoms_histogram_" + simid + ".png"
-    plot_numatoms_histogram(traj, output_dir, fname3, title = title3, savefig = True)
+    #title3 = 'dt=' + dt_string
+    #fname3 = "numatoms_histogram_" + simid + ".png"
+    #plot_numatoms_histogram(traj, output_dir, fname3, title = title3, savefig = True)
 
     title4 = 'dt=' + dt_string
-    minimas = [0.0 + 0.0j, 2.15 + 4.6j, 9.85+ 4.6j]
-    fname4 = "numatoms_histogram_minimas" + simid + ".png"
+    fname4 = "histograms_natoms_minimas_" + simid + ".png"
     plot_numatoms_histogram_minimas(traj, traj_current, minimas, output_dir, fname4,  title = title4, savefig = True)
 
 
 # Transmon/cavity systems parameters and initial conditions
-maxAt = 10 #8 #8 #8 #2 #8 #transmon
+maxAt = 9 #8 #8 #8 #2 #8 #transmon
 maxPh = 250 #250 #400 # 400 #10 #400 #photon
 k = 1.0 
 #Omega, epsilon, U = 50.0*k, 12.0*k, 400.0*k 
@@ -75,10 +78,10 @@ myIntegrator = splittingExactIterativeCN()
 # Run simulation with fixed dt
 dt_array, times, traj, traj_current = simulate_fixed_dt(
     X0 = X0, 
-    nsteps = 400000, #10000000, #4000000, #1000000,
+    nsteps = 4000000, #10000000, #4000000, #1000000,
     dt = dt, 
     save_every = 100, 
-    renormalize_every = 100, #1000,
+    renormalize_every = 1000,
     progress_bar=True,
     calculate_current = True,
     integrator = myIntegrator,
@@ -102,7 +105,7 @@ dt_array, times, traj, traj_current = simulate_fixed_dt(
     )'''
 
 # Plot figures
-plot_figures(dt, times, traj, traj_current, 'test')
+plot_figures(dt, times, traj, traj_current, 'CK02')
 
 
 
