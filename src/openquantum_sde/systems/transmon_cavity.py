@@ -46,7 +46,7 @@ class TransmonCavity(base_system):
         self.U = U
         self.kfill = 1.0 * k
 
-        # IMPLEMENTATION IMPROVEMENTS, MOVE THESE INTO THE PRECOMPUTATIONS OF EACH INTEGRATOR
+        '''# IMPLEMENTED INTO THE PRECOMPUTATIONS OF EACH INTEGRATOR
         # Define auxiliary containers used by integrators 
         # (add more if needed, to avoid defining arrays at integration steps)
         self.expdiagBX = np.zeros([M,N], dtype=np.complex128)
@@ -54,7 +54,7 @@ class TransmonCavity(base_system):
         self.BX_coherent = np.zeros([M,N], dtype=np.complex128)
         self.BX_noncoherent = np.zeros([M,N], dtype=np.complex128)
         self.ZXtmp = np.zeros([M,N], dtype=np.complex128)
-        self.bx_scalar = np.zeros(1, dtype=np.complex128) 
+        self.bx_scalar = np.zeros(1, dtype=np.complex128)''' 
 
         # Precompute constant arrays used in the class routines
         self.sqrt_n, self.sqrt_n1, self.sqrt_m_n1, self.sqrt_m1_n, self.sqrt_k_n1 = self.precompute_arrays(self.M, self.N, self.k)

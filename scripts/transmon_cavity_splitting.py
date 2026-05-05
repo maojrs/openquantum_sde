@@ -98,7 +98,7 @@ myIntegrator = splittingExactIterativeCN()
 # Run simulation with fixed dt
 dt_array, times, traj, traj_current = simulate_fixed_dt(
     X0 = X0, 
-    nsteps = 3000000, #10000000, #4000000, #1000000,
+    nsteps = 4000000, #10000000, #4000000, #1000000,
     dt = dt, 
     save_every = 100, 
     renormalize_every = 1000,

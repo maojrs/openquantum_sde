@@ -7,6 +7,16 @@ from openquantum_sde.integrators.integrator import base_integrator
 class stochasticHeun(base_integrator):
     '''Integrator class for stochastic Heun method (predictor-corrector) '''
 
+
+    def precomputations(self, dt, system):
+        # Make sure conatiners used by integrator are defined in system
+        M = system.M
+        N = system.N
+        system.BX_coherent = np.zeros([M,N], dtype=np.complex128)
+        system.BX_noncoherent = np.zeros([M,N], dtype=np.complex128)
+        system.bx_scalar = np.zeros(1, dtype=np.complex128) 
+        system.BXtmp = np.zeros([M,N], dtype=np.complex128) 
+        system.ZXtmp = np.zeros([M,N], dtype=np.complex128)
     
     def integrate_step(self, X, BX, ZX, z, dt, system):       
         '''Integrates one step of size dt for an stochastic Schrodinger equation
