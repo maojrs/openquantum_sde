@@ -10,12 +10,24 @@ class splittingRK4EM(base_integrator):
     timstep) and then again RK4 for another half-time step'''
 
     def __init__(self, M, N):
+        super().__init__()
+
         # Allocate containers for RK4 scheme
         self.K1 = np.zeros([M,N], dtype=np.complex128)
         self.K2 = np.zeros([M,N], dtype=np.complex128)
         self.K3 = np.zeros([M,N], dtype=np.complex128)
         self.K4 = np.zeros([M,N], dtype=np.complex128)
         self.TMP = np.zeros([M,N], dtype=np.complex128)
+    
+
+    def precomputations(self, dt, system):
+        # Make sure conatiners used by integrator are defined in system
+        M = system.M
+        N = system.N
+        system.BX_coherent = np.zeros([M,N], dtype=np.complex128)
+        system.BX_noncoherent = np.zeros([M,N], dtype=np.complex128)
+        system.bx_scalar = np.zeros(1, dtype=np.complex128)
+        system.ZXtmp = np.zeros([M,N], dtype=np.complex128)
 
         
 

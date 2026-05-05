@@ -46,15 +46,16 @@ class TransmonCavity(base_system):
         self.U = U
         self.kfill = 1.0 * k
 
-        '''# IMPLEMENTED INTO THE PRECOMPUTATIONS OF EACH INTEGRATOR
-        # Define auxiliary containers used by integrators 
-        # (add more if needed, to avoid defining arrays at integration steps)
+        # Auxiliary containers used by integrators, they are defined on the
+        # precomputations of each integrator. Some default ones are added by
+        # default here (add more if needed here or in intgerator precomputations
+        # to avoid defining arrays at every integration step)
         self.expdiagBX = np.zeros([M,N], dtype=np.complex128)
         self.BXtmp = np.zeros([M,N], dtype=np.complex128)
         self.BX_coherent = np.zeros([M,N], dtype=np.complex128)
         self.BX_noncoherent = np.zeros([M,N], dtype=np.complex128)
         self.ZXtmp = np.zeros([M,N], dtype=np.complex128)
-        self.bx_scalar = np.zeros(1, dtype=np.complex128)''' 
+        self.bx_scalar = np.zeros(1, dtype=np.complex128)
 
         # Precompute constant arrays used in the class routines
         self.sqrt_n, self.sqrt_n1, self.sqrt_m_n1, self.sqrt_m1_n, self.sqrt_k_n1 = self.precompute_arrays(self.M, self.N, self.k)
@@ -311,7 +312,7 @@ class TransmonCavity(base_system):
         for m in range(M):
             for n in range(N):
                 if n < N - 1:
-                    ZX[m,n] = np.sqrt(2) * sqrt_k_n1[n] * X[m,n+1]  #MODIFIED TEST
+                    ZX[m,n] = np.sqrt(2) * sqrt_k_n1[n] * X[m,n+1] 
                 else:
                     ZX[m,n] = 0.0 + 0.0j
     

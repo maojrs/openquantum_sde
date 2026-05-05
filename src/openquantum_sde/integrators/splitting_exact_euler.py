@@ -11,6 +11,8 @@ class splittingExactEuler(base_integrator):
     half time step of the exact solution.'''
 
     def __init__(self, taming = False):
+        super().__init__()
+
         if taming:
             self.integrate_step = self.integrate_step_taming
         else:
