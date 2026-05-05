@@ -45,7 +45,7 @@ class splittingExactEuler(base_integrator):
         
         # when called *args should be *system.kernel_args()'''
 
-        # Exact diagonal drift solution for half time step
+        # Exact diagonal coherent drift solution for half time step
         X *= system.expdiagBX
 
         # Euler method for remaining terms
@@ -54,7 +54,7 @@ class splittingExactEuler(base_integrator):
 
         X += BX * dt + ZX * z * np.sqrt(dt) 
 
-        # Exact diagonal drift solution for half time step
+        # Exact diagonal coherent drift solution for a second half time step
         X *= system.expdiagBX
 
 
@@ -67,7 +67,7 @@ class splittingExactEuler(base_integrator):
         
         # when called *args should be *system.kernel_args()'''
 
-        # Exact diagonal drift solution for half time step
+        # Exact diagonal coherent drift solution for half time step
         X *= system.expdiagBX
 
         # Euler method for remaining terms
@@ -79,5 +79,5 @@ class splittingExactEuler(base_integrator):
 
         X += BX * dt + ZX * z * np.sqrt(dt) 
         
-        # Exact diagonal drift solution for half time step
+        # Exact diagonal coherent drift solution for a second half time step
         X *= system.expdiagBX

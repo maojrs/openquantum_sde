@@ -51,13 +51,15 @@ def calculate_num_atoms(X):
     X.shape = (M, N) with M = transmon level (num atoms), N=photon level'''
     M, N = X.shape
     num_atoms = np.zeros(M, dtype=np.float64)
+    norm = 0.0
     for m in range(M):
         norm_sqr = 0.0
         for n in range(N):
             g = X[m,n]
             norm_sqr += g.real * g.real + g.imag * g.imag
+            norm += g.real * g.real + g.imag * g.imag
         num_atoms[m] = norm_sqr
-    return num_atoms
+    return num_atoms/norm
 
 
 @njit(fastmath = True)
@@ -72,5 +74,4 @@ def calculate_num_photons(X):
             xmn = X[m,n]
             num_photons += n * xmn * (xmn.real - 1.0j*xmn.imag)
             norm += xmn.real * xmn.real + xmn.imag * xmn.imag
-    num_photons = num_photons/norm
-    return num_photons
+    return num_photons/norm

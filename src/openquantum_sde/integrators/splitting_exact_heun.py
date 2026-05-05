@@ -20,7 +20,7 @@ class splittingExactHeun(splittingExactEuler):
         
         # when called *args should be *system.kernel_args()'''
 
-        # Exact diagonal drift solution for half time step
+        # Exact diagonal coherent drift solution for half time step
         X *= system.expdiagBX
 
         # Heun method for remaining terms
@@ -35,7 +35,7 @@ class splittingExactHeun(splittingExactEuler):
         
         X += 0.5 * (system.BXtmp + BX) * dt + 0.5 * (system.ZXtmp + ZX) * z * np.sqrt(dt) 
 
-        # Exact diagonal drift solution for half time step
+        # Exact diagonal coherent drift solution for a second half time step
         X *= system.expdiagBX
 
     
@@ -48,7 +48,7 @@ class splittingExactHeun(splittingExactEuler):
         
         # when called *args should be *system.kernel_args()'''
 
-        # Exact diagonal drift solution for half time step
+        # Exact diagonal coherent drift solution for half time step
         X *= system.expdiagBX
 
         # Heun method with Taming for remaining terms
@@ -69,5 +69,5 @@ class splittingExactHeun(splittingExactEuler):
         X += 0.5 * (system.BXtmp + BX) * dt + 0.5 * (system.ZXtmp + ZX) * z * np.sqrt(dt) #Z BY 3
 
         
-        # Exact diagonal drift solution for half time step
+        # Exact diagonal coherent drift solution for a second half time step
         X *= system.expdiagBX

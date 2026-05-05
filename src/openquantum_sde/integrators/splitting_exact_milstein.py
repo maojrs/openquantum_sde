@@ -20,7 +20,7 @@ class splittingExactMilstein(splittingExactEuler, Milstein):
         
         # when called *args should be *system.kernel_args()'''
 
-        # Exact diagonal drift solution for half time step
+        # Exact diagonal coherent drift solution for half time step
         X *= system.expdiagBX
 
         # Milstein method for remaining terms
@@ -31,7 +31,7 @@ class splittingExactMilstein(splittingExactEuler, Milstein):
         self.milstein_noise_step(X, dt, ZX, z, system)
         X += dt * BX
 
-        # Exact diagonal drift solution for half time step
+        # Exact diagonal coherent drift solution for a second half time step
         X *= system.expdiagBX
 
     
@@ -44,7 +44,7 @@ class splittingExactMilstein(splittingExactEuler, Milstein):
         
         # when called *args should be *system.kernel_args()'''
 
-        # Exact diagonal drift solution for half time step
+        # Exact diagonal coherent drift solution for half time step
         X *= system.expdiagBX
 
         # Milstein method with Taming for remaining terms
@@ -58,5 +58,5 @@ class splittingExactMilstein(splittingExactEuler, Milstein):
         self.milstein_noise_step(X, dt, ZX, z, system)
         X += dt * BX
         
-        # Exact diagonal drift solution for half time step
+        # Exact diagonal coherent drift solution for a second half time step
         X *= system.expdiagBX

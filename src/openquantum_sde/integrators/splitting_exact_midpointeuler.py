@@ -23,7 +23,7 @@ class splittingExactMidpointEuler(splittingExactEuler):
         
         # when called *args should be *system.kernel_args()'''
 
-        # Exact diagonal drift solution for half time step
+        # Exact diagonal coherent drift solution for half time step
         X *= system.expdiagBX
 
         # Semi-implicit Euler method for remaining terms
@@ -39,7 +39,7 @@ class splittingExactMidpointEuler(splittingExactEuler):
 
         X += BX * dt + ZX * z * np.sqrt(dt) 
 
-        # Exact diagonal drift solution for half time step
+        # Exact diagonal coherent drift solution for a second half time step
         X *= system.expdiagBX
 
 
@@ -52,7 +52,7 @@ class splittingExactMidpointEuler(splittingExactEuler):
         
         # when called *args should be *system.kernel_args()'''
 
-        # Exact diagonal drift solution for half time step
+        # Exact diagonal coherent drift solution for half time step
         X *= system.expdiagBX
 
         # Semi-implicit Euler method for remaining terms
@@ -74,5 +74,5 @@ class splittingExactMidpointEuler(splittingExactEuler):
 
         X += BX * dt + ZX * z * np.sqrt(dt) 
         
-        # Exact diagonal drift solution for half time step
+        # Exact diagonal coherent drift solution for a second half time step
         X *= system.expdiagBX
