@@ -75,3 +75,17 @@ def calculate_num_photons(X):
             num_photons += n * xmn * (xmn.real - 1.0j*xmn.imag)
             norm += xmn.real * xmn.real + xmn.imag * xmn.imag
     return num_photons/norm
+
+
+njit(fastmath = True)
+def filter_trajectory(traj, traj_current, minima, tolerance):
+    '''Filter trajectory to only include data around a minima in the current phase 
+    space with a given tolderance radius'''
+
+    #Build boolean mask from traj_current
+    mask = np.abs(traj_current - minima) <= tolerance
+
+    # Apply mask along the first axis
+    filtered_traj = traj[mask]
+
+    return filtered_traj

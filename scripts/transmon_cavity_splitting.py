@@ -10,6 +10,8 @@ from openquantum_sde.integrators import splittingExactHeun, splittingExactMilste
 from openquantum_sde.systems import TransmonCavity
 from openquantum_sde.simulation import simulate_fixed_dt, simulate_adaptive_dt
 from openquantum_sde.utils import calculate_norm, calculate_num_atoms
+from openquantum_sde.plotting import plot_current, plot_current_phasespace, plot_numatoms_histogram, plot_numatoms_histogram_minimas
+
 
 
 #----------------Plotting routines----------------------------------------
@@ -17,54 +19,29 @@ from openquantum_sde.utils import calculate_norm, calculate_num_atoms
 
 def plot_figures(dt, times, traj, traj_current, simid):
     if not isinstance(simid, str):
-        simid = str(int(barposition))
+        simid = str(int(simid))
     dt_string = f"{dt:.3g}"
 
-    # plot current
-    fig, ax = plt.subplots(figsize=(6, 4), dpi=120)
-    ax.plot(times, traj_current.real, label=r'Re[$\alpha$]', lw=0.5)
-    ax.plot(times, traj_current.imag, label=r'Im[$\alpha$]', lw=0.5)
-    ax.plot(times, (traj_current*traj_current.conjugate()).real, label=r'$|\alpha^2|$', lw=0.5)
-    ax.set_title('dt=' + dt_string) 
-    ax.set_xlabel('Time')
-    ax.legend()
-    ax.grid(True, alpha=0.3)
-    fname2 = "current_timeseries_" + simid + ".png"
-    fig.savefig(output_dir / fname2)
+    title1 = 'dt=' + dt_string
+    fname1 = "current_timeseries_" + simid + ".png"
+    plot_current(times, traj_current, output_dir, fname1, title = title1, savefig = True)
 
-    # Plot phase space of current
-    scale = 0.8 #1.0
-    maxval = scale*(abs(epsilon)/k)
-    fig2, ax2 = plt.subplots(figsize=(6, 6), dpi=120)
-    ax2.plot(traj_current.real, traj_current.imag, lw=0.2, color='k')
-    ax2.set_title('dt=' + dt_string) 
-    ax2.set_xlim([-maxval,maxval])
-    ax2.set_ylim([-maxval,maxval])
-    ax2.set_aspect('equal')
+    title2 = 'dt=' + dt_string
     fname2 = "phase_space_trajectory_" + simid + ".png"
-    fig2.savefig(output_dir / fname2)
+    plot_current_phasespace(traj_current, output_dir, fname2, maxval = abs(epsilon)/k, title = title2, savefig = True)
 
-    # Number of atoms histogram
-    # Arrays to calculate num atoms
-    traj_num_atoms = np.zeros(traj.shape[0:2], dtype=np.float64)
-    for i in range(traj.shape[0]):
-        traj_num_atoms[i] = calculate_num_atoms(traj[i])
-    
-    # Plot num_atoms histogram (averaged over time interval)
-    imin = 0
-    imax = len(traj_num_atoms)
-    mean_num_atoms = np.mean(traj_num_atoms[imin:imax], axis=0)
-    fig3, ax3 = plt.subplots(figsize=(6, 6), dpi=120)
-    ax3.bar(np.arange(0, len(mean_num_atoms)), mean_num_atoms)
-    ax3.set_title('dt=' + dt_string) 
-    ax3.set_xlabel("Value")
-    ax3.set_ylabel("Frequency")
+    title3 = 'dt=' + dt_string
     fname3 = "numatoms_histogram_" + simid + ".png"
-    fig3.savefig(output_dir / fname3)
+    plot_numatoms_histogram(traj, output_dir, fname3, title = title3, savefig = True)
+
+    title4 = 'dt=' + dt_string
+    minimas = [0.0 + 0.0j, 2.15 + 4.6j, 9.85+ 4.6j]
+    fname4 = "numatoms_histogram_minimas" + simid + ".png"
+    plot_numatoms_histogram_minimas(traj, traj_current, minimas, output_dir, fname4,  title = title4, savefig = True)
 
 
 # Transmon/cavity systems parameters and initial conditions
-maxAt = 8 #8 #8 #2 #8 #transmon
+maxAt = 10 #8 #8 #8 #2 #8 #transmon
 maxPh = 250 #250 #400 # 400 #10 #400 #photon
 k = 1.0 
 #Omega, epsilon, U = 50.0*k, 12.0*k, 400.0*k 
@@ -98,10 +75,10 @@ myIntegrator = splittingExactIterativeCN()
 # Run simulation with fixed dt
 dt_array, times, traj, traj_current = simulate_fixed_dt(
     X0 = X0, 
-    nsteps = 4000000, #10000000, #4000000, #1000000,
+    nsteps = 400000, #10000000, #4000000, #1000000,
     dt = dt, 
     save_every = 100, 
-    renormalize_every = 1000,
+    renormalize_every = 100, #1000,
     progress_bar=True,
     calculate_current = True,
     integrator = myIntegrator,
@@ -125,7 +102,7 @@ dt_array, times, traj, traj_current = simulate_fixed_dt(
     )'''
 
 # Plot figures
-plot_figures(dt, times, traj, traj_current, 'CK04')
+plot_figures(dt, times, traj, traj_current, 'test')
 
 
 
