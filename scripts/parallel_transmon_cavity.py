@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 
 from tqdm import tqdm
 import os
-#os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE" # For parallel writing differen files
 import h5py
 from pathlib import Path
 from multiprocessing import RLock
