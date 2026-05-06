@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 
 from tqdm import tqdm
 import os
+#os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE" # For parallel writing differen files
+import h5py
 from pathlib import Path
 from multiprocessing import RLock
 from concurrent.futures import ProcessPoolExecutor
@@ -12,6 +14,8 @@ from openquantum_sde.integrators import stochasticHeun, splittingExactEuler, spl
 from openquantum_sde.integrators import splittingExactHeun, splittingExactMilstein
 from openquantum_sde.systems import TransmonCavity
 from openquantum_sde.simulation import simulate_fixed_dt, simulate_adaptive_dt
+
+from openquantum_sde.io import save_trajectory, save_params
 from openquantum_sde.utils import calculate_norm, calculate_num_atoms, find_minima_fast
 from openquantum_sde.plotting import plot_current, plot_current_phasespace, plot_numatoms_histogram, plot_numatoms_histogram_minimas
 
@@ -24,16 +28,45 @@ workers = max(1, total_cores - 2)
 tqdm.set_lock(RLock())
 
 
-# Transmon/cavity systems parameters and initial conditions
+# Output directories for figs and data
+output_figs = True
+output_data = True
+PROJECT_NAME = "openquantum_sde"
+SIM_NAME = "transmon_cavity_CN_parallel"
+
+if "DATA" in os.environ:
+    base_dir = Path(os.environ["DATA"]).expanduser()
+else:
+    base_dir = Path(".")  # current folder
+
+simulation_dir = base_dir / PROJECT_NAME / SIM_NAME
+
+if output_figs:
+    output_figs_dir = simulation_dir / "figs"
+    output_figs_dir.mkdir(parents=True, exist_ok=True)
+
+if output_data:
+    output_data_dir = simulation_dir / "data"
+    output_data_dir.mkdir(parents=True, exist_ok=True)
+
+
+# Transmon/cavity systems parameters
 maxAt = 9 #8 #8 #8 #2 #8 #transmon
 maxPh = 250 #250 #400 # 400 #10 #400 #photon
 k = 1.0 
 #Omega, epsilon, U = 50.0*k, 12.0*k, 400.0*k 
 Omega, epsilon, U = 50.0*k, 12.0*k, 400.0*k 
 
+# Simulation parameters
+nsteps = 4000 #10000000 #4000000 #1000000
+dt = 5e-4 #5e-5 
+save_every = 100
+renormalize_every = 1000
+time_adaptive = False
 
-output_dir = Path("figs_CK")
-output_dir.mkdir(parents=True, exist_ok=True)
+# Aliases for inetgartor and system classes
+thisSystem = TransmonCavity
+thisIntegrator = splittingExactIterativeCN
 
 
 # Wrapper of simulation 
@@ -44,11 +77,10 @@ def parallel_simulation_wrapper(simid):
 
     # Define system
     M, N = X0.shape
-    trans_cavity_system = TransmonCavity(M, N, k, Omega, epsilon, U)
+    trans_cavity_system = thisSystem(M, N, k, Omega, epsilon, U)
 
     # Define integrator
-    dt = 5e-4 
-    myIntegrator = splittingExactIterativeCN()
+    myIntegrator = thisIntegrator()
 
     # Parameters for parallelized progress bar
     tqdm_kwargs = {
@@ -61,18 +93,26 @@ def parallel_simulation_wrapper(simid):
     # Run simulation with fixed dt
     dt_array, times, traj, traj_current = simulate_fixed_dt(
         X0 = X0, 
-        nsteps = 4000, #10000000, #4000000, #1000000,
+        nsteps = nsteps, 
         dt = dt, 
-        save_every = 100, 
-        renormalize_every = 1000,                   
+        save_every = save_every, 
+        renormalize_every = renormalize_every,                   
         progress_bar=True,
         calculate_current = True,
         integrator = myIntegrator,
         system = trans_cavity_system
         )
 
+    simidstr = "CK_" + f"{simid:04d}"
+
+    # Save data
+    if output_data:
+        fname = 'traj_' + simidstr
+        save_trajectory(fname, output_data_dir, times, traj, traj_current, simidstr)
+
     # Plot figures
-    plot_figures(dt, times, traj, traj_current, 'CK' + str(simid))
+    if output_figs:
+        plot_figures(output_figs_dir, dt, times, traj, traj_current, simidstr)
 
 
 # An additional wrapper that takes as input the parameters and returns the simulation
@@ -97,7 +137,7 @@ def run_all(param_list, use_progress=True):
 #----------------Plotting routine----------------------------------------
     
 
-def plot_figures(dt, times, traj, traj_current, simid):
+def plot_figures(output_dir, dt, times, traj, traj_current, simid):
     if not isinstance(simid, str):
         simid = str(int(simid))
     dt_string = f"{dt:.3g}"
@@ -112,7 +152,7 @@ def plot_figures(dt, times, traj, traj_current, simid):
     title2 = 'dt=' + dt_string
     fname2 = "phase_space_trajectory_" + simid + ".png"
     lim = abs(epsilon)/k
-    plot_current_phasespace(traj_current, output_dir, fname2, pltlims = [-0.5*lim, lim], minimas = minimas, title = title2, savefig = True)
+    plot_current_phasespace(traj_current, output_dir, fname2, pltlims = [-0.25*lim, lim], minimas = minimas, title = title2, savefig = True)
 
     #title3 = 'dt=' + dt_string
     #fname3 = "numatoms_histogram_" + simid + ".png"
@@ -133,3 +173,33 @@ for i in range(numsims):
     
 # Run parallelized simulation
 run_all(param_list)
+
+
+# Define parameter dictionary for storge and otput parameters
+params = {
+    "simulation": {
+        "simulation_name": SIM_NAME,
+        "dt": dt,
+        "nsteps" : nsteps,
+        "final_time" : dt * nsteps,
+        "save_every" : save_every,
+        "renormalize_every" : renormalize_every
+    },
+    "system": {
+        "system_name" : thisSystem.__name__ ,
+        "M": maxAt + 1,
+        "N": maxPh + 1,
+        "k": k,
+        "Omega" : Omega,
+        "epsilon" : epsilon,
+        "U" :  U
+    },
+    "numerics": {
+        "method": thisIntegrator.__name__ ,
+        "time_adaptive" : time_adaptive
+    }
+}
+
+# Save data
+if output_data:
+    save_params('params.json', output_data_dir, params)

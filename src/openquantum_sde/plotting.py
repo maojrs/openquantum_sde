@@ -59,19 +59,20 @@ def plot_numatoms_histogram(traj, output_dir = None, fname = None, title = None,
         fig.savefig(output_dir / fname)
 
 
-def plot_numatoms_histogram_minimas(traj, traj_current, minimas, output_dir = None, fname = None,  title = None, savefig = False):
+def plot_numatoms_histogram_minimas(traj, traj_current, minimas, output_dir = None, fname = None,  title = '', savefig = False):
     '''Plots the number of atoms histograms for different minimas given in the current phase space'''
     
     # Filter trajectory around the given minima (only save if non-empty)
     filtered_trajectories = []
     title_str = []
-    actual_minimas = []
     for i in range(len(minimas)):
         filtered_traj = filter_trajectory(traj, traj_current, minimas[i], tolerance = 1.0)
         if filtered_traj.size > 0:
             filtered_trajectories.append(filtered_traj)
+            # Add minima value into plot title
             minima_str = f"{minimas[i].real:.3g}{minimas[i].imag:+.3g}j"
-            title_str.append(minima_str)
+            finaltitle = "Minima=" + minima_str + '   ' + title
+            title_str.append(finaltitle)
 
     numplots = len(filtered_trajectories)
 
@@ -108,12 +109,7 @@ def plot_numatoms_histogram_minimas(traj, traj_current, minimas, output_dir = No
             mean_num_atoms = np.mean(traj_num_atoms[imin:imax], axis=0)
             axis.bar(np.arange(0, len(mean_num_atoms)), mean_num_atoms)
             axis.set_ylim([0,1])
-            title_str = 'Minima=' + title_str[j]
-            if title == None:
-                finaltitle = title_str
-            else:
-                finaltitle = title_str + '   ' + title
-            axis.set_title(finaltitle)  
+            axis.set_title(title_str[j])  
             axis.set_xlabel("Number of atoms")
             axis.set_ylabel("Frequency")
 
