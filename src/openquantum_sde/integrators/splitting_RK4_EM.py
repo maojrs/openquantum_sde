@@ -27,8 +27,6 @@ class splittingRK4EM(base_integrator):
         system.BX_coherent = np.zeros([M,N], dtype=np.complex128)
         system.BX_noncoherent = np.zeros([M,N], dtype=np.complex128)
         system.bx_scalar = np.zeros(1, dtype=np.complex128)
-        system.ZXtmp = np.zeros([M,N], dtype=np.complex128)
-
         
 
     def rk4_drift_step(self, X, dt, BX, system):

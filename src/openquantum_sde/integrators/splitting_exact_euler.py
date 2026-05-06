@@ -25,8 +25,6 @@ class splittingExactEuler(base_integrator):
         N = system.N
         system.expdiagBX = np.zeros([M,N], dtype=np.complex128)
         system.bx_scalar = np.zeros(1, dtype=np.complex128)
-        system.BXtmp = np.zeros([M,N], dtype=np.complex128) # Used in child integrators
-        system.ZXtmp = np.zeros([M,N], dtype=np.complex128) # Used in child integrators
 
         # Calculate matrix exponentials for exact solution
         system.compute_exponential_drift_matrix_diagonal(system.expdiagBX, 0.5*dt, *system.kernel_args())

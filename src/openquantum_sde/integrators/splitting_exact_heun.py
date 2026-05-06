@@ -8,6 +8,18 @@ class splittingExactHeun(splittingExactEuler):
     '''Integrator class for splitting method, using exact method for matrix diagonal for
      half time step, then Huen method for remaining terms for a full time step plus another
     half time step of the exact solution.'''
+
+    def precomputations(self, dt, system):
+        # Make sure conatiners used by integrator are defined in system
+        M = system.M
+        N = system.N
+        system.expdiagBX = np.zeros([M,N], dtype=np.complex128)
+        system.bx_scalar = np.zeros(1, dtype=np.complex128)
+        system.BXtmp = np.zeros([M,N], dtype=np.complex128)
+        system.ZXtmp = np.zeros([M,N], dtype=np.complex128)
+
+        # Calculate matrix exponentials for exact solution
+        system.compute_exponential_drift_matrix_diagonal(system.expdiagBX, 0.5*dt, *system.kernel_args())
     
 
     @staticmethod
