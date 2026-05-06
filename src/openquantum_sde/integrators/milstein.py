@@ -10,8 +10,6 @@ class Milstein(base_integrator):
         # Make sure conatiners used by integrator are defined in system
         M = system.M
         N = system.N
-        system.BX_coherent = np.zeros([M,N], dtype=np.complex128)
-        system.BX_noncoherent = np.zeros([M,N], dtype=np.complex128)
         system.bx_scalar = np.zeros(1, dtype=np.complex128)
         system.ZXtmp = np.zeros([M,N], dtype=np.complex128)
 
@@ -48,7 +46,7 @@ class Milstein(base_integrator):
         
         # when called *args should be *system.kernel_args()
         # '''
-        system.calculate_drift_matrix(X, BX, system.BX_coherent, system.BX_noncoherent, system.bx_scalar, *system.kernel_args())
+        system.calculate_drift_matrix(X, BX, system.bx_scalar, *system.kernel_args())
 
         # Milstein part (full time-step)
         self.milstein_noise_step(X, dt, ZX, z, system)

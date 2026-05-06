@@ -17,7 +17,7 @@ class splittingExactIterativeCN(splittingExactEuler):
             N = system.N
             system.expdiagBX = np.zeros([M,N], dtype=np.complex128)
             system.bx_scalar = np.zeros(1, dtype=np.complex128)
-            #system.BXtmp = np.zeros([M,N], dtype=np.complex128) # Used in child integrators
+            system.BXtmp = np.zeros([M,N], dtype=np.complex128) # Used in child integrators
             system.Xk = np.zeros([M,N], dtype=np.complex128) # Used in child integrators
 
             # Calculate matrix exponentials for exact solution

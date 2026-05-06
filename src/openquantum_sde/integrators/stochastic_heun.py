@@ -12,8 +12,6 @@ class stochasticHeun(base_integrator):
         # Make sure conatiners used by integrator are defined in system
         M = system.M
         N = system.N
-        system.BX_coherent = np.zeros([M,N], dtype=np.complex128)
-        system.BX_noncoherent = np.zeros([M,N], dtype=np.complex128)
         system.bx_scalar = np.zeros(1, dtype=np.complex128) 
         system.BXtmp = np.zeros([M,N], dtype=np.complex128) 
         system.ZXtmp = np.zeros([M,N], dtype=np.complex128)
@@ -27,12 +25,12 @@ class stochasticHeun(base_integrator):
         
         # when called *args should be *system.kernel_args()
         # '''
-        system.calculate_drift_matrix(X, system.BXtmp, system.BX_coherent, system.BX_noncoherent, system.bx_scalar, *system.kernel_args())
+        system.calculate_drift_matrix(X, system.BXtmp, system.bx_scalar, *system.kernel_args())
         system.calculate_noise_matrix(X, system.ZXtmp, *system.kernel_args())
 
         predictor = X + dt * system.BXtmp + z * np.sqrt(dt) * system.ZXtmp 
 
-        system.calculate_drift_matrix(predictor, BX, system.BX_coherent, system.BX_noncoherent, system.bx_scalar, *system.kernel_args())
+        system.calculate_drift_matrix(predictor, BX, system.bx_scalar, *system.kernel_args())
         system.calculate_noise_matrix(predictor, ZX, *system.kernel_args())
         
         

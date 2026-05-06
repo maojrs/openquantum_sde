@@ -46,16 +46,17 @@ class TransmonCavity(base_system):
         self.U = U
         self.kfill = 1.0 * k
 
-        '''Auxiliary containers used by integrators, can be defined on the
-        precomputations of each integrator. Here we add some default ones 
-        (add more if needed or in intgerator precomputations) 
-        Initiliazed as None to avoid unnecesary memory usage '''
+        '''Auxiliary containers used by integrators. Initiliazed as 
+        None to avoid unnecesary memory usage. Ideally, they should be 
+        initilized here as None and with specific dimensions on 
+        integrator.precomputations. Add more if needed. '''
+        self.bx_scalar = None #np.zeros(1, dtype=np.complex128)
         self.expdiagBX = None #np.zeros([M,N], dtype=np.complex128)
         self.BXtmp = None #np.zeros([M,N], dtype=np.complex128)
+        self.ZXtmp = None #np.zeros([M,N], dtype=np.complex128)
+        # In case some integrator splits into oeheren and noncoherent drifts
         self.BX_coherent = None #np.zeros([M,N], dtype=np.complex128)
         self.BX_noncoherent = None #np.zeros([M,N], dtype=np.complex128)
-        self.ZXtmp = None #np.zeros([M,N], dtype=np.complex128)
-        self.bx_scalar = None #np.zeros(1, dtype=np.complex128)
 
         # Precompute constant arrays used in the class routines
         self.sqrt_n, self.sqrt_n1, self.sqrt_m_n1, self.sqrt_m1_n, self.sqrt_k_n1 = self.precompute_arrays(self.M, self.N, self.k)
@@ -252,7 +253,7 @@ class TransmonCavity(base_system):
 
     @staticmethod
     @njit(fastmath=True)
-    def calculate_drift_matrix(X, BX, BX_coherent, BX_noncoherent, bx_scalar,
+    def calculate_drift_matrix(X, BX, bx_scalar,
                     M, N, k, Omega, epsilon, U, 
                     sqrt_n, sqrt_n1, sqrt_m_n1, sqrt_m1_n, sqrt_k_n1):
         '''Calculates the total drift matrix (drift_matrix_hamiltonian + 
@@ -277,7 +278,7 @@ class TransmonCavity(base_system):
                     s += Omega * sqrt_m_n1[m, n] * X[m - 1, n + 1]
                 if m < M-1 and n > 0:
                     s -= Omega * sqrt_m1_n[m, n] * X[m + 1, n - 1]
-                BX_coherent[m, n] = s
+                BX[m, n] = s
 
                  # Calculate the drift scalar bx
                 norm += xmn.real * xmn.real + xmn.imag * xmn.imag
@@ -292,9 +293,8 @@ class TransmonCavity(base_system):
                 else:
                     s2 = 0.0 + 0.0j
                 
-                BX_noncoherent[m,n] = s2
                 # Calculates total drift matrix
-                BX[m, n] = BX_coherent[m, n] + s2
+                BX[m, n] += s2
 
 
     @staticmethod

@@ -24,8 +24,6 @@ class splittingRK4EM(base_integrator):
         # Make sure conatiners used by integrator are defined in system
         M = system.M
         N = system.N
-        system.BX_coherent = np.zeros([M,N], dtype=np.complex128)
-        system.BX_noncoherent = np.zeros([M,N], dtype=np.complex128)
         system.bx_scalar = np.zeros(1, dtype=np.complex128)
         
 
@@ -34,26 +32,22 @@ class splittingRK4EM(base_integrator):
 
         # ---- K1 (BX) ----
         system.calculate_drift_matrix(X, self.K1, 
-                                      system.BX_coherent, system.BX_noncoherent, system.bx_scalar, 
-                                      *system.kernel_args())
+                                      system.bx_scalar, *system.kernel_args())
         self.TMP = X + 0.5 * dt * self.K1
 
         # ---- K2 ----
         system.calculate_drift_matrix(self.TMP, self.K2, 
-                                      system.BX_coherent, system.BX_noncoherent, system.bx_scalar, 
-                                      *system.kernel_args())
+                                      system.bx_scalar, *system.kernel_args())
         self.TMP = X + 0.5 * dt * self.K2
 
         # ---- K3 ----
         system.calculate_drift_matrix(self.TMP, self.K3, 
-                                      system.BX_coherent, system.BX_noncoherent, system.bx_scalar,
-                                      *system.kernel_args())
+                                      system.bx_scalar, *system.kernel_args())
         self.TMP = X + dt * self.K3
 
         # ---- K4 ----
         system.calculate_drift_matrix(self.TMP, self.K4, 
-                                      system.BX_coherent, system.BX_noncoherent, system.bx_scalar,
-                                      *system.kernel_args())
+                                      system.bx_scalar, *system.kernel_args())
 
         # ---- final update ----
         X += (dt / 6.0) * (self.K1 + 2*self.K2 + 2*self.K3 + self.K4)
