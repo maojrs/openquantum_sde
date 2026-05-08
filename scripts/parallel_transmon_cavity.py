@@ -19,7 +19,7 @@ from openquantum_sde.utils import calculate_norm, calculate_num_atoms, find_mini
 from openquantum_sde.plotting import plot_current, plot_current_phasespace, plot_numatoms_histogram, plot_numatoms_histogram_minimas
 
 # For parallelizations
-numsims = 15
+numsims = 20
 total_cores = os.cpu_count()
 workers = max(1, total_cores - 2)
 
@@ -50,17 +50,17 @@ if output_data:
 
 
 # Transmon/cavity systems parameters
-maxAt = 9 #8 #8 #8 #2 #8 #transmon
+maxAt = 11 #9 #8 #8 #8 #2 #8 #transmon
 maxPh = 250 #250 #400 # 400 #10 #400 #photon
 k = 1.0 
 #Omega, epsilon, U = 50.0*k, 12.0*k, 400.0*k 
 Omega, epsilon, U = 50.0*k, 12.0*k, 400.0*k 
 
 # Simulation parameters
-nsteps = 4000 #10000000 #4000000 #1000000
-dt = 5e-4 #5e-5 
+nsteps = 40000000 #10000000 #4000000 #1000000
+dt = 2.5e-4 #5e-5 
 save_every = 100
-renormalize_every = 1000
+renormalize_every = 100
 time_adaptive = False
 
 # Aliases for inetgartor and system classes
@@ -141,7 +141,7 @@ def plot_figures(output_dir, dt, times, traj, traj_current, simid):
         simid = str(int(simid))
     dt_string = f"{dt:.3g}"
 
-    minimas = [0.0 + 0.0j, 2.15 + 4.6j, 9.85+ 4.6j]
+    minimas = [0.0 + 0.0j, 2.15 + 4.6j, 9.85 + 3.8j] #9.85+ 4.6j]
 
 
     title1 = 'dt=' + dt_string
@@ -161,17 +161,6 @@ def plot_figures(output_dir, dt, times, traj, traj_current, simid):
     fname4 = "histograms_natoms_minimas_" + simid + ".png"
     plot_numatoms_histogram_minimas(traj, traj_current, minimas, output_dir, fname4,  title = title4, savefig = True)
 
-
-
-# Create paremeter list (just sim ids)
-param_list = []
-for i in range(numsims):
-    param_list.append({
-        "simid": i+1,
-    })
-    
-# Run parallelized simulation
-run_all(param_list)
 
 
 # Define parameter dictionary for storge and otput parameters
@@ -202,3 +191,18 @@ params = {
 # Save data
 if output_data:
     save_params('params.json', output_data_dir, params)
+    if output_figs:
+        save_params('params.json', output_figs_dir, params)
+
+
+
+
+# Create paremeter list for parallel runs (just sim ids)
+param_list = []
+for i in range(numsims):
+    param_list.append({
+        "simid": i+1,
+    })
+    
+# Run parallelized simulation
+run_all(param_list)
