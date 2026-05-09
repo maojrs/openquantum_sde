@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 import os
 import h5py
+import gc
 from pathlib import Path
 from multiprocessing import RLock
 from concurrent.futures import ProcessPoolExecutor
@@ -21,7 +22,7 @@ from openquantum_sde.plotting import plot_current, plot_current_phasespace, plot
 # For parallelizations
 numsims = 20
 total_cores = os.cpu_count()
-workers = max(1, total_cores - 2)
+workers = 4 #max(1, total_cores - 2)
 
 # For progress bar
 tqdm.set_lock(RLock())
@@ -31,7 +32,7 @@ tqdm.set_lock(RLock())
 output_figs = True
 output_data = True
 PROJECT_NAME = "openquantum_sde"
-SIM_NAME = "transmon_cavity_CN_parallel"
+SIM_NAME = "transmon_cavity_CN_parallel_dt2.5e-4_MaxAt13_MaxPh300_verylong"
 
 if "DATA" in os.environ:
     base_dir = Path(os.environ["DATA"]).expanduser()
@@ -50,8 +51,8 @@ if output_data:
 
 
 # Transmon/cavity systems parameters
-maxAt = 11 #9 #8 #8 #8 #2 #8 #transmon
-maxPh = 250 #250 #400 # 400 #10 #400 #photon
+maxAt = 13 #11 #9 #8 #8 #8 #2 #8 #transmon
+maxPh = 280 #250 #250 #400 # 400 #10 #400 #photon
 k = 1.0 
 #Omega, epsilon, U = 50.0*k, 12.0*k, 400.0*k 
 Omega, epsilon, U = 50.0*k, 12.0*k, 400.0*k 
@@ -59,7 +60,7 @@ Omega, epsilon, U = 50.0*k, 12.0*k, 400.0*k
 # Simulation parameters
 nsteps = 40000000 #10000000 #4000000 #1000000
 dt = 2.5e-4 #5e-5 
-save_every = 100
+save_every = 200 #100
 renormalize_every = 100
 time_adaptive = False
 
@@ -112,6 +113,19 @@ def parallel_simulation_wrapper(simid):
     # Plot figures
     if output_figs:
         plot_figures(output_figs_dir, dt, times, traj, traj_current, simidstr)
+
+    # Explicit cleanup
+    del traj
+    del traj_current
+    del times
+    del dt_array
+    del trans_cavity_system
+    del myIntegrator
+    del X0
+
+    plt.close('all')
+
+    gc.collect()
 
 
 # An additional wrapper that takes as input the parameters and returns the simulation
