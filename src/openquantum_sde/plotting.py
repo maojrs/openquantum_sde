@@ -20,19 +20,19 @@ def plot_current(times, traj_current, output_dir = None, fname = None, title = N
         fig.savefig(output_dir / fname)
 
 
-def plot_current_phasespace(traj_current, output_dir = None, fname = None, pltlims = [10,10], scale = 1.0, minimas = None, title = None, savefig = False):
+def plot_current_phasespace(traj_current, output_dir = None, fname = None, xlim = [10,10], ylim = [10,10], minimas = None, title = None, savefig = False):
     '''Plots phase space trajectory of current, real vs imaginary part'''
-    minval = pltlims[0] * scale
-    maxval = pltlims[1] * scale
     fig, ax = plt.subplots(figsize=(6, 6), dpi=120)
     ax.plot(traj_current.real, traj_current.imag, lw=0.2, color='k')
     if minimas != None:
         minimas = np.array(minimas)
         ax.plot(minimas.real, minimas.imag, 'rx')
     if title != None:
-        ax.set_title(title) 
-    ax.set_xlim([minval,maxval])
-    ax.set_ylim([minval,maxval])
+        ax.set_title(title)
+    ax.set_xlabel(r"Re$[\alpha ]$")
+    ax.set_ylabel(r"Im$[\alpha ]$") 
+    ax.set_xlim(xlim)
+    ax.set_ylim(ylim) 
     ax.set_aspect('equal')
     if savefig:
         fig.savefig(output_dir / fname)

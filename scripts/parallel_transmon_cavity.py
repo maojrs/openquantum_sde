@@ -172,20 +172,23 @@ def plot_figures(output_dir, dt, times, traj, traj_current, minimas, simid):
         simid = str(int(simid))
     dt_string = f"{dt:.3g}"
 
-    title1 = 'dt=' + dt_string
+    #title1 = 'dt=' + dt_string
+    title1 = r"Current $\alpha$"
     fname1 = "current_timeseries_" + simid + ".png"
     plot_current(times, traj_current, output_dir, fname1, title = title1, savefig = True)
 
-    title2 = 'dt=' + dt_string
+    #title2 = 'dt=' + dt_string
+    title2 = "Phase space"
     fname2 = "phase_space_trajectory_" + simid + ".png"
     lim = abs(epsilon)/k
-    plot_current_phasespace(traj_current, output_dir, fname2, pltlims = [-0.25*lim, lim], minimas = minimas, title = title2, savefig = True)
+    plot_current_phasespace(traj_current, output_dir, fname2, xlim = [-3.0, 14], ylim = [-3.0, 8], minimas = minimas, title = title2, savefig = True)
 
     #title3 = 'dt=' + dt_string
     #fname3 = "numatoms_histogram_" + simid + ".png"
     #plot_numatoms_histogram(traj, output_dir, fname3, title = title3, savefig = True)
 
-    title4 = 'dt=' + dt_string
+    #title4 = 'dt=' + dt_string
+    title4 = ''
     fname4 = "histograms_natoms_minimas_" + simid + ".png"
     plot_numatoms_histogram_minimas(traj, traj_current, minimas, output_dir, fname4,  title = title4, savefig = True)
 
