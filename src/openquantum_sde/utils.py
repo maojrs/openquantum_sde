@@ -47,7 +47,7 @@ def calculate_norm(X):
 
 @njit(fastmath = True)
 def calculate_num_atoms(X):
-    '''Calculates number of atoms histogram from state matrix X.
+    '''Calculates expected number of atoms from state matrix X.
     X.shape = (M, N) with M = transmon level (num atoms), N=photon level'''
     M, N = X.shape
     num_atoms = np.zeros(M, dtype=np.float64)

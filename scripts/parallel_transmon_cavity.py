@@ -28,11 +28,30 @@ workers = 4 #max(1, total_cores - 2)
 tqdm.set_lock(RLock())
 
 
+# Transmon/cavity systems parameters
+maxAt = 13 #11 #9 #8 #8 #8 #2 #8 #transmon
+maxPh = 300 #250 #250 #400 # 400 #10 #400 #photon
+k = 1.0 
+#Omega, epsilon, U = 50.0*k, 12.0*k, 400.0*k 
+Omega, epsilon, U = 50.0*k, 12.0*k, 400.0*k
+
+# Simulation parameters
+nsteps = 20000000 #10000000 #4000000 #1000000
+dt = 2.5e-4 #5e-5 
+save_every = 200 #100
+renormalize_every = 1000
+time_adaptive = False
+
+# Aliases for integrator and system classes
+thisSystem = TransmonCavity
+thisIntegrator = splittingExactIterativeCN
+
+
 # Output directories for figs and data
 output_figs = True
 output_data = True
 PROJECT_NAME = "openquantum_sde"
-SIM_NAME = "transmon_cavity_CN_parallel_dt2.5e-4_MaxAt13_MaxPh300_verylong"
+SIM_NAME = "transmon_cavity_eps_" + str(int(epsilon))
 
 if "DATA" in os.environ:
     base_dir = Path(os.environ["DATA"]).expanduser()
@@ -50,23 +69,21 @@ if output_data:
     output_data_dir.mkdir(parents=True, exist_ok=True)
 
 
-# Transmon/cavity systems parameters
-maxAt = 13 #11 #9 #8 #8 #8 #2 #8 #transmon
-maxPh = 280 #250 #250 #400 # 400 #10 #400 #photon
-k = 1.0 
-#Omega, epsilon, U = 50.0*k, 12.0*k, 400.0*k 
-Omega, epsilon, U = 50.0*k, 12.0*k, 400.0*k 
+# Minimas in phase space depending on drive epsilon (for phase space plots)
+minimas_by_epsilon = {
+    11: [0.00 + 0.00j, 2.18 + 4.39j, 9.79 + 3.45j],
+    12: [0.00 + 0.00j, 2.15 + 4.60j, 9.84 + 4.61j],
+    13: [0.00 + 0.01j, 2.14 + 4.82j, 9.85 + 5.57j],
+    14: [0.00 + 0.01j, 2.14 + 5.04j, 9.86 + 6.39j],
+    15: [0.00 + 0.01j, 2.15 + 5.25j, 9.85 + 7.12j],
+    16: [0.00 + 0.01j, 2.17 + 5.47j, 9.86 + 7.78j],
+    17: [0.00 + 0.01j, 2.19 + 5.70j, 9.89 + 8.39j],
+    18: [0.00 + 0.01j, 2.23 + 5.93j, 9.93 + 8.95j],
+    19: [0.00 + 0.01j, 2.27 + 6.16j, 9.98 + 9.49j],
+    20: [0.00 + 0.01j, 2.32 + 6.40j, 10.04 + 10.00j],
+}
 
-# Simulation parameters
-nsteps = 40000000 #10000000 #4000000 #1000000
-dt = 2.5e-4 #5e-5 
-save_every = 200 #100
-renormalize_every = 100
-time_adaptive = False
-
-# Aliases for inetgartor and system classes
-thisSystem = TransmonCavity
-thisIntegrator = splittingExactIterativeCN
+minimas = minimas_by_epsilon.get(epsilon, [])
 
 
 # Wrapper of simulation 
@@ -112,7 +129,7 @@ def parallel_simulation_wrapper(simid):
 
     # Plot figures
     if output_figs:
-        plot_figures(output_figs_dir, dt, times, traj, traj_current, simidstr)
+        plot_figures(output_figs_dir, dt, times, traj, traj_current, minimas, simidstr)
 
     # Explicit cleanup
     del traj
@@ -150,13 +167,10 @@ def run_all(param_list, use_progress=True):
 #----------------Plotting routine----------------------------------------
     
 
-def plot_figures(output_dir, dt, times, traj, traj_current, simid):
+def plot_figures(output_dir, dt, times, traj, traj_current, minimas, simid):
     if not isinstance(simid, str):
         simid = str(int(simid))
     dt_string = f"{dt:.3g}"
-
-    minimas = [0.0 + 0.0j, 2.15 + 4.6j, 9.85 + 3.8j] #9.85+ 4.6j]
-
 
     title1 = 'dt=' + dt_string
     fname1 = "current_timeseries_" + simid + ".png"
@@ -202,11 +216,11 @@ params = {
     }
 }
 
-# Save data
+# Save parameters file
 if output_data:
     save_params('params.json', output_data_dir, params)
-    if output_figs:
-        save_params('params.json', output_figs_dir, params)
+if output_figs:
+    save_params('params.json', output_figs_dir, params)
 
 
 
