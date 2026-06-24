@@ -22,7 +22,8 @@ def plot_current(times, traj_current, output_dir = None, fname = None, title = N
 
 def plot_current_phasespace(traj_current, output_dir = None, fname = None, xlim = [10,10], ylim = [10,10], minimas = None, title = None, savefig = False):
     '''Plots phase space trajectory of current, real vs imaginary part'''
-    fig, ax = plt.subplots(figsize=(6, 6), dpi=120)
+    s = (ylim[1] - ylim[0])/(xlim[1] - xlim[0])
+    fig, ax = plt.subplots(figsize=(6, 6*s), dpi=120)
     ax.plot(traj_current.real, traj_current.imag, lw=0.2, color='k')
     if minimas != None:
         minimas = np.array(minimas)
