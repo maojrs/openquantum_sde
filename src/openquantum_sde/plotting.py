@@ -7,7 +7,7 @@ from openquantum_sde.utils import calculate_num_atoms, filter_trajectory
 
 def plot_current(times, traj_current, output_dir = None, fname = None, title = None, savefig = False):
     '''Plots current (real, imag and squared norm) as a fucntion of time'''
-    fig, ax = plt.subplots(figsize=(6, 4), dpi=120)
+    fig, ax = plt.subplots(figsize=(6, 4), dpi=120, constrained_layout=True)
     ax.plot(times, traj_current.real, label=r'Re[$\alpha$]', lw=0.5)
     ax.plot(times, traj_current.imag, label=r'Im[$\alpha$]', lw=0.5)
     ax.plot(times, (traj_current*traj_current.conjugate()).real, label=r'$|\alpha^2|$', lw=0.5)
@@ -23,7 +23,7 @@ def plot_current(times, traj_current, output_dir = None, fname = None, title = N
 def plot_current_phasespace(traj_current, output_dir = None, fname = None, xlim = [10,10], ylim = [10,10], minimas = None, title = None, savefig = False):
     '''Plots phase space trajectory of current, real vs imaginary part'''
     s = (ylim[1] - ylim[0])/(xlim[1] - xlim[0])
-    fig, ax = plt.subplots(figsize=(6, 6*s), dpi=120)
+    fig, ax = plt.subplots(figsize=(6, 6*s), dpi=120, constrained_layout=True)
     ax.plot(traj_current.real, traj_current.imag, lw=0.2, color='k')
     if minimas != None:
         minimas = np.array(minimas)
@@ -86,7 +86,7 @@ def plot_numatoms_histogram_minimas(traj, traj_current, minimas, output_dir = No
         cols = 3
         rows = math.ceil(numplots / cols)
 
-    fig, ax = plt.subplots(rows, cols, figsize=(6 * cols, 4.5 * rows))
+    fig, ax = plt.subplots(rows, cols, figsize=(6 * cols, 4.5 * rows), constrained_layout=True)
 
     # Ensure ax is iterable (flatten in case of multiple rows/cols)
     if numplots == 1:

@@ -114,7 +114,7 @@ def parallel_simulation_wrapper(simid):
         dt = dt, 
         save_every = save_every, 
         renormalize_every = renormalize_every,                   
-        progress_bar=True,
+        progress_bar=False,
         calculate_current = True,
         integrator = myIntegrator,
         system = trans_cavity_system
