@@ -60,9 +60,11 @@ def plot_numatoms_histogram(traj, output_dir = None, fname = None, title = None,
         fig.savefig(output_dir / fname)
 
 
-def plot_numatoms_histogram_minimas(traj, traj_current, minimas, output_dir = None, fname = None,  title = '', savefig = False):
+def plot_numatoms_histogram_minimas(traj, traj_current, minimas = None, output_dir = None, fname = None,  title = '', savefig = False):
     '''Plots the number of atoms histograms for different minimas given in the current phase space'''
-    
+    if minimas == None:
+        minimas = [0.00 + 0.00j]
+
     # Filter trajectory around the given minima (only save if non-empty)
     filtered_trajectories = []
     title_str = []
