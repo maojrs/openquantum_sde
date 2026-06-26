@@ -20,9 +20,9 @@ from openquantum_sde.utils import calculate_norm, calculate_num_atoms, find_mini
 from openquantum_sde.plotting import plot_current, plot_current_phasespace, plot_numatoms_histogram, plot_numatoms_histogram_minimas
 
 # For parallelizations
-numsims = 50
+numsims = 5
 total_cores = os.cpu_count()
-workers = 2 #max(1, total_cores - 2)
+workers = 5 #max(1, total_cores - 2)
 
 # For progress bar
 tqdm.set_lock(RLock())
@@ -33,10 +33,10 @@ maxAt = 13 #11 #9 #8 #8 #8 #2 #8 #transmon
 maxPh = 300 #250 #250 #400 # 400 #10 #400 #photon
 k = 1.0 
 #Omega, epsilon, U = 50.0*k, 12.0*k, 400.0*k 
-Omega, epsilon, U = 50.0*k, 12.0*k, 400.0*k
+Omega, epsilon, U = 50.0*k, 10.0*k, 400.0*k
 
 # Simulation parameters
-nsteps = 20000000 #10000000 #4000000 #1000000
+nsteps = 2000 #10000000 #4000000 #1000000
 dt = 2.5e-4 #5e-5 
 save_every = 200 #100
 renormalize_every = 1000
@@ -228,12 +228,17 @@ if output_figs:
 
 
 
-# Create paremeter list for parallel runs (just sim ids)
-param_list = []
-for i in range(numsims):
-    param_list.append({
-        "simid": i+1,
-    })
-    
-# Run parallelized simulation
-run_all(param_list)
+def main():
+    # Create paremeter list for parallel runs (just sim ids)
+    param_list = []
+    for i in range(numsims):
+        param_list.append({
+            "simid": i+1,
+        })
+        
+    # Run parallelized simulation
+    run_all(param_list)
+
+
+if __name__ == "__main__":
+    main()

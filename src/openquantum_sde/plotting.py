@@ -62,8 +62,6 @@ def plot_numatoms_histogram(traj, output_dir = None, fname = None, title = None,
 
 def plot_numatoms_histogram_minimas(traj, traj_current, minimas = None, output_dir = None, fname = None,  title = '', savefig = False):
     '''Plots the number of atoms histograms for different minimas given in the current phase space'''
-    if minimas == None:
-        minimas = [0.00 + 0.00j]
 
     # Filter trajectory around the given minima (only save if non-empty)
     filtered_trajectories = []
@@ -79,46 +77,47 @@ def plot_numatoms_histogram_minimas(traj, traj_current, minimas = None, output_d
 
     numplots = len(filtered_trajectories)
 
-    # Determine layout
-    if numplots <= 3:
-        rows, cols = 1, numplots
-    elif numplots == 4:
-        rows, cols = 2, 2
-    else:
-        cols = 3
-        rows = math.ceil(numplots / cols)
-
-    fig, ax = plt.subplots(rows, cols, figsize=(6 * cols, 4.5 * rows), constrained_layout=True)
-
-    # Ensure ax is iterable (flatten in case of multiple rows/cols)
-    if numplots == 1:
-        ax = [ax]
-    else:
-        ax = np.array(ax).flatten()
-
-    # Plot on each axis
-    for j, axis in enumerate(ax):
-        if j < numplots:
-
-            filtered_traj = filtered_trajectories[j]
-
-            # Array to calculate num atoms
-            traj_num_atoms = np.zeros(filtered_traj.shape[0:2], dtype=np.float64)
-            for i in range(filtered_traj.shape[0]):
-                traj_num_atoms[i] = calculate_num_atoms(filtered_traj[i])
-
-            imin = 0
-            imax = len(traj_num_atoms)
-            mean_num_atoms = np.mean(traj_num_atoms[imin:imax], axis=0)
-            axis.bar(np.arange(0, len(mean_num_atoms)), mean_num_atoms)
-            axis.set_ylim([0,1])
-            axis.set_title(title_str[j])  
-            axis.set_xlabel("Number of atoms")
-            axis.set_ylabel("Frequency")
-
+    if numplots > 0:
+        # Determine layout
+        if numplots <= 3:
+            rows, cols = 1, numplots
+        elif numplots == 4:
+            rows, cols = 2, 2
         else:
-            axis.set_visible(False)  # Hide unused subplots
-    
-    if savefig:
-        fig.savefig(output_dir / fname)
+            cols = 3
+            rows = math.ceil(numplots / cols)
+
+        fig, ax = plt.subplots(rows, cols, figsize=(6 * cols, 4.5 * rows), constrained_layout=True)
+
+        # Ensure ax is iterable (flatten in case of multiple rows/cols)
+        if numplots == 1:
+            ax = [ax]
+        else:
+            ax = np.array(ax).flatten()
+
+        # Plot on each axis
+        for j, axis in enumerate(ax):
+            if j < numplots:
+
+                filtered_traj = filtered_trajectories[j]
+
+                # Array to calculate num atoms
+                traj_num_atoms = np.zeros(filtered_traj.shape[0:2], dtype=np.float64)
+                for i in range(filtered_traj.shape[0]):
+                    traj_num_atoms[i] = calculate_num_atoms(filtered_traj[i])
+
+                imin = 0
+                imax = len(traj_num_atoms)
+                mean_num_atoms = np.mean(traj_num_atoms[imin:imax], axis=0)
+                axis.bar(np.arange(0, len(mean_num_atoms)), mean_num_atoms)
+                axis.set_ylim([0,1])
+                axis.set_title(title_str[j])  
+                axis.set_xlabel("Number of atoms")
+                axis.set_ylabel("Frequency")
+
+            else:
+                axis.set_visible(False)  # Hide unused subplots
+        
+        if savefig:
+            fig.savefig(output_dir / fname)
 
