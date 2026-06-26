@@ -20,9 +20,9 @@ from openquantum_sde.utils import calculate_norm, calculate_num_atoms, find_mini
 from openquantum_sde.plotting import plot_current, plot_current_phasespace, plot_numatoms_histogram, plot_numatoms_histogram_minimas
 
 # For parallelizations
-numsims = 5
+numsims = 50
 total_cores = os.cpu_count()
-workers = 5 #max(1, total_cores - 2)
+workers = 2 #max(1, total_cores - 2)
 
 # For progress bar
 tqdm.set_lock(RLock())
@@ -36,7 +36,7 @@ k = 1.0
 Omega, epsilon, U = 50.0*k, 10.0*k, 400.0*k
 
 # Simulation parameters
-nsteps = 2000 #10000000 #4000000 #1000000
+nsteps = 20000000 #10000000 #4000000 #1000000
 dt = 2.5e-4 #5e-5 
 save_every = 200 #100
 renormalize_every = 1000
