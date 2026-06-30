@@ -35,7 +35,7 @@ def plot_figures(output_dir, dt, times, traj, traj_current, simid):
     title2 = 'dt=' + dt_string
     fname2 = "phase_space_trajectory_" + simid + ".png"
     lim = abs(epsilon)/k
-    plot_current_phasespace(traj_current, output_dir, fname2, pltlims = [-0.25*lim, lim], minimas = minimas, title = title2, savefig = True)
+    plot_current_phasespace(traj_current, output_dir, fname2, xlim = [-0.25*lim, lim], ylim = [-0.25*lim, lim], minimas = minimas, title = title2, savefig = True)
 
     #title3 = 'dt=' + dt_string
     #fname3 = "numatoms_histogram_" + simid + ".png"

@@ -54,7 +54,7 @@ class TransmonCavity(base_system):
         self.expdiagBX = None #np.zeros([M,N], dtype=np.complex128)
         self.BXtmp = None #np.zeros([M,N], dtype=np.complex128)
         self.ZXtmp = None #np.zeros([M,N], dtype=np.complex128)
-        # In case some integrator splits into oeheren and noncoherent drifts
+        # In case some integrator splits into coherent and noncoherent drifts
         self.BX_coherent = None #np.zeros([M,N], dtype=np.complex128)
         self.BX_noncoherent = None #np.zeros([M,N], dtype=np.complex128)
 
@@ -334,9 +334,10 @@ class TransmonCavity(base_system):
         '''Calculates current observable to enable comparison with
         experimental data using Euler method, z should correspond 
         to the complex valued noise used to calculate the noise matrix ZX.
-        Note bx_scalar must be evaluated a start of time step'''
+        Note bx_scalar must be evaluated at the start of the time step'''
         dq = bx_scalar[0] * dt + np.sqrt(dt) * z 
-        alpha -= 0.5 * kfill * (dt * alpha - dq*np.sqrt(0.5))
+        alpha -= 0.5 * kfill * (dt * alpha - dq / np.sqrt(2.0 * k))
+        #alpha -= 0.5 * kfill * (dt * alpha - dq * np.sqrt(0.5))
         return alpha
     
 
@@ -346,10 +347,11 @@ class TransmonCavity(base_system):
         '''Calculates current observable to enable comparison with
         experimental data using backward Euler metod, z should correspond 
         to the complex valued noise used to calculate the noise matrix ZX.
-        Note bx_scalar must be evaluated a end of time step'''
+        Note bx_scalar must be evaluated at the end of the time step'''
         dq = bx_scalar[0] * dt + np.sqrt(dt) * z 
-        denom = (1 + 0.5 * kfill *dt)
-        alpha = (alpha + 0.5 * kfill * np.sqrt(0.5*k) * dq)/denom
+        denom = 1 + 0.5 * kfill *dt
+        alpha = (alpha + 0.5 * kfill * dq / np.sqrt(2.0 * k))/denom
+        #alpha = (alpha + 0.5 * kfill * np.sqrt(0.5*k) * dq)/denom
         return alpha
     
 

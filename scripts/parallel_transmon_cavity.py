@@ -20,7 +20,7 @@ from openquantum_sde.utils import calculate_norm, calculate_num_atoms, find_mini
 from openquantum_sde.plotting import plot_current, plot_current_phasespace, plot_numatoms_histogram, plot_numatoms_histogram_minimas
 
 # For parallelizations
-numsims = 50
+numsims = 10
 total_cores = os.cpu_count()
 workers = 2 #max(1, total_cores - 2)
 
@@ -29,17 +29,18 @@ tqdm.set_lock(RLock())
 
 
 # Transmon/cavity systems parameters
-maxAt = 13 #11 #9 #8 #8 #8 #2 #8 #transmon
-maxPh = 300 #250 #250 #400 # 400 #10 #400 #photon
+#NEEEED TO SCALE THIS GUY UP TO 20 AND RUN A TEST
+maxAt = 20 #13 #11 #9 #8 #8 #8 #2 #8 #transmon
+maxPh = 320 #300 #250 #250 #400 # 400 #10 #400 #photon
 k = 1.0 
 #Omega, epsilon, U = 50.0*k, 12.0*k, 400.0*k 
 Omega, epsilon, U = 50.0*k, 10.0*k, 400.0*k
 
 # Simulation parameters
-nsteps = 20000000 #10000000 #4000000 #1000000
-dt = 2.5e-4 #5e-5 
+nsteps = 25000000 #10000000 #4000000 #1000000
+dt = 2.0e-4 #2.5e-4 #2.5e-4 #5e-5 
 save_every = 200 #100
-renormalize_every = 1000
+renormalize_every = 1 #1000
 time_adaptive = False
 
 # Aliases for integrator and system classes
@@ -51,7 +52,7 @@ thisIntegrator = splittingExactIterativeCN
 output_figs = True
 output_data = True
 PROJECT_NAME = "openquantum_sde"
-SIM_NAME = "transmon_cavity_eps_" + str(int(epsilon))
+SIM_NAME = "transmon_cavity_test_renorm1_maxAt20_maxPh320_dt2e4_eps_" + str(int(epsilon))
 
 if "DATA" in os.environ:
     base_dir = Path(os.environ["DATA"]).expanduser()
@@ -83,7 +84,7 @@ minimas_by_epsilon = {
     20: [0.00 + 0.01j, 2.32 + 6.40j, 10.04 + 10.00j],
 }
 
-minimas = minimas_by_epsilon.get(epsilon, [])
+minimas = minimas_by_epsilon.get(int(epsilon/k), [])
 
 
 # Wrapper of simulation 
@@ -113,7 +114,7 @@ def parallel_simulation_wrapper(simid):
         nsteps = nsteps, 
         dt = dt, 
         save_every = save_every, 
-        renormalize_every = renormalize_every,                   
+        renormalize_every = renormalize_every,
         progress_bar=False,
         calculate_current = True,
         integrator = myIntegrator,
@@ -181,7 +182,7 @@ def plot_figures(output_dir, dt, times, traj, traj_current, minimas, simid):
     title2 = "Phase space"
     fname2 = "phase_space_trajectory_" + simid + ".png"
     lim = abs(epsilon)/k
-    plot_current_phasespace(traj_current, output_dir, fname2, xlim = [-3.0, 14], ylim = [-3.0, 8], minimas = minimas, title = title2, savefig = True)
+    plot_current_phasespace(traj_current, output_dir, fname2, xlim = [-3.0, 14], ylim = [-3.0, 14], minimas = minimas, title = title2, savefig = True)
 
     #title3 = 'dt=' + dt_string
     #fname3 = "numatoms_histogram_" + simid + ".png"
