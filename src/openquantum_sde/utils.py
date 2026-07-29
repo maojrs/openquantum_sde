@@ -77,6 +77,29 @@ def calculate_num_photons(X):
     return num_photons/norm
 
 
+@njit(fastmath=True)
+def calculate_num_photons_chunk(traj):
+    """
+    Calculates expected value of number of photons from trajectory chunk with
+    elment state matrix X.
+    traj.shape = (T, M, N) with T = number of time steps, M = transmon level
+     and N = photon level. The average number corresponds to total_photons/total_norm
+    """
+    T, M, N = traj.shape
+    total_photons = 0.0
+    total_norm = 0.0
+
+    for t in range(T):
+        for m in range(M):
+            for n in range(N):
+                xmn = traj[t, m, n]
+                prob = xmn.real*xmn.real + xmn.imag*xmn.imag
+                total_photons += n * prob
+                total_norm += prob
+
+    return total_photons, total_norm
+
+
 njit(fastmath = True)
 def filter_trajectory(traj, traj_current, minima, tolerance):
     '''Filter trajectory to only include data around a minima in the current phase 

@@ -22,7 +22,7 @@ from openquantum_sde.plotting import plot_current, plot_current_phasespace, plot
 # For parallelizations
 numsims = 10
 total_cores = os.cpu_count()
-workers = 2 #max(1, total_cores - 2)
+workers = 5 #max(1, total_cores - 2)
 
 # For progress bar
 tqdm.set_lock(RLock())
@@ -52,7 +52,7 @@ thisIntegrator = splittingExactIterativeCN
 output_figs = True
 output_data = True
 PROJECT_NAME = "openquantum_sde"
-SIM_NAME = "transmon_cavity_test_renorm1_maxAt20_maxPh320_dt2e4_eps_" + str(int(epsilon))
+SIM_NAME = "transmon_cavity_eps_" + str(int(epsilon))
 
 if "DATA" in os.environ:
     base_dir = Path(os.environ["DATA"]).expanduser()
