@@ -7,7 +7,13 @@ from openquantum_sde.integrators import splittingExactEuler, Milstein
 class splittingExactMilstein(splittingExactEuler, Milstein):
     '''Integrator class for splitting method, using exact method for matrix diagonal for
      half time step, then Milstein method for remaining terms for a full time step plus another
-    half time step of the exact solution.'''
+    half time step of the exact solution.
+
+    Warning: the drift is advanced with an explicit Euler step, which slightly
+    amplifies undamped oscillations at every step. For weakly damped, strongly
+    coupled systems (e.g. large Omega with an undamped transmon) the solution can
+    blow up unless dt is very small. A second-order scheme such as
+    splittingExactIterativeCN (or splittingExactHeun, splittingRK4EM) is more robust.'''
     
 
     def precomputations(self, dt, system):

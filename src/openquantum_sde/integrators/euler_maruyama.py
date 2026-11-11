@@ -5,7 +5,13 @@ from openquantum_sde.integrators.integrator import base_integrator
 
 
 class EulerMaruyama(base_integrator):
-    '''Integrator class for Euler Maruyama '''
+    '''Integrator class for Euler Maruyama
+
+    Warning: the drift is advanced with an explicit Euler step, which slightly
+    amplifies undamped oscillations at every step. For weakly damped, strongly
+    coupled systems (e.g. large Omega with an undamped transmon) the solution can
+    blow up unless dt is very small. A second-order scheme such as
+    splittingExactIterativeCN (or splittingExactHeun, splittingRK4EM) is more robust.'''
 
     def precomputations(self, dt, system):
         # Make sure conatiners used by integrator are defined in system

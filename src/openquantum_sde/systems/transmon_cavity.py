@@ -335,7 +335,10 @@ class TransmonCavity(base_system):
         experimental data using Euler method, z should correspond 
         to the complex valued noise used to calculate the noise matrix ZX.
         Note bx_scalar must be evaluated at the start of the time step'''
-        dq = bx_scalar[0] * dt + np.sqrt(dt) * z 
+        if k == 0.0:
+            # No light leaves the cavity, so there is no measured current (alpha stays 0)
+            return alpha
+        dq = bx_scalar[0] * dt + np.sqrt(dt) * z
         alpha -= 0.5 * kfill * (dt * alpha - dq / np.sqrt(2.0 * k))
         #alpha -= 0.5 * kfill * (dt * alpha - dq * np.sqrt(0.5))
         return alpha
@@ -348,7 +351,10 @@ class TransmonCavity(base_system):
         experimental data using backward Euler metod, z should correspond 
         to the complex valued noise used to calculate the noise matrix ZX.
         Note bx_scalar must be evaluated at the end of the time step'''
-        dq = bx_scalar[0] * dt + np.sqrt(dt) * z 
+        if k == 0.0:
+            # No light leaves the cavity, so there is no measured current (alpha stays 0)
+            return alpha
+        dq = bx_scalar[0] * dt + np.sqrt(dt) * z
         denom = 1 + 0.5 * kfill *dt
         alpha = (alpha + 0.5 * kfill * dq / np.sqrt(2.0 * k))/denom
         #alpha = (alpha + 0.5 * kfill * np.sqrt(0.5*k) * dq)/denom
