@@ -1,0 +1,6 @@
+# Notebooks are examples: leave them out of GitHub's language statistics
+notebooks/*.ipynb linguist-documentation
+
+*.ipynb filter=nbstripout
+*.zpln filter=nbstripout
+*.ipynb diff=ipynb

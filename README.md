@@ -35,6 +35,8 @@ uv sync --group notebooks    # optional: also installs Jupyter for the notebooks
 
 Run scripts inside the environment with `uv run`, e.g. `uv run python scripts/transmon_cavity_splitting.py`.
 
+If you edit the notebooks, run `uv run nbstripout --install` once after cloning: it strips outputs and metadata from notebooks when they are committed.
+
 ## Usage
 
 ### Fixed time step
