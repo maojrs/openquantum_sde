@@ -2,7 +2,7 @@ import numpy as np
 from numba import njit
 
 from openquantum_sde.utils import calculate_norm
-from openquantum_sde.integrators import splittingExactEuler
+from openquantum_sde.integrators.splitting_exact_euler import splittingExactEuler
 
 
 

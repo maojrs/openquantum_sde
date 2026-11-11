@@ -1,6 +1,6 @@
 import numpy as np
 
-from openquantum_sde.integrators import splittingExactEuler
+from openquantum_sde.integrators.splitting_exact_euler import splittingExactEuler
 
 
 

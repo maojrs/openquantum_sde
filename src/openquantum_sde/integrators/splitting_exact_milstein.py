@@ -1,6 +1,7 @@
 import numpy as np
 
-from openquantum_sde.integrators import splittingExactEuler, Milstein
+from openquantum_sde.integrators.splitting_exact_euler import splittingExactEuler
+from openquantum_sde.integrators.milstein import Milstein
 
 
 

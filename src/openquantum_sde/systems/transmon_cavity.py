@@ -74,7 +74,7 @@ class TransmonCavity(base_system):
 
 
     @staticmethod
-    @njit(fastmath = True)
+    @njit(fastmath = True, cache = True)
     def precompute_arrays(M,N,k):
         ''' Precomputes and return all square roots and constant 
         arrays used to calculate the drift and noise matrices.'''
@@ -97,7 +97,7 @@ class TransmonCavity(base_system):
     
 
     @staticmethod
-    @njit(fastmath = True)
+    @njit(fastmath = True, cache = True)
     def compute_exponential_drift_matrix_diagonal(expdiagBX, dt,
                                 M, N, k, Omega, epsilon, U, 
                                 sqrt_n, sqrt_n1, sqrt_m_n1, sqrt_m1_n, sqrt_k_n1):
@@ -115,7 +115,7 @@ class TransmonCavity(base_system):
 
 
     @staticmethod
-    @njit(fastmath = True)
+    @njit(fastmath = True, cache = True)
     def drift_matrix_coherent(X, BX_coherent, 
                               M, N, k, Omega, epsilon, U, 
                               sqrt_n, sqrt_n1, sqrt_m_n1, sqrt_m1_n, sqrt_k_n1):
@@ -142,7 +142,7 @@ class TransmonCavity(base_system):
 
 
     @staticmethod
-    @njit(fastmath = True)
+    @njit(fastmath = True, cache = True)
     def drift_matrix_noncoherent(X, BX_noncoherent, bx_scalar,
                                  M, N, k, Omega, epsilon, U, 
                                  sqrt_n, sqrt_n1, sqrt_m_n1, sqrt_m1_n, sqrt_k_n1):
@@ -177,7 +177,7 @@ class TransmonCavity(base_system):
 
 
     @staticmethod
-    @njit(fastmath = True)
+    @njit(fastmath = True, cache = True)
     def calculate_drift_scalar(X, bx_scalar, 
                      M, N, k, Omega, epsilon, U, 
                      sqrt_n, sqrt_n1, sqrt_m_n1, sqrt_m1_n, sqrt_k_n1):
@@ -206,7 +206,7 @@ class TransmonCavity(base_system):
 
 
     @staticmethod
-    @njit(fastmath=True)
+    @njit(fastmath=True, cache=True)
     def calculate_drift_matrix_nondiagonal(X, BX, bx_scalar,
                     M, N, k, Omega, epsilon, U, 
                     sqrt_n, sqrt_n1, sqrt_m_n1, sqrt_m1_n, sqrt_k_n1):
@@ -252,7 +252,7 @@ class TransmonCavity(base_system):
 
 
     @staticmethod
-    @njit(fastmath=True)
+    @njit(fastmath=True, cache=True)
     def calculate_drift_matrix(X, BX, bx_scalar,
                     M, N, k, Omega, epsilon, U, 
                     sqrt_n, sqrt_n1, sqrt_m_n1, sqrt_m1_n, sqrt_k_n1):
@@ -298,7 +298,7 @@ class TransmonCavity(base_system):
 
 
     @staticmethod
-    @njit(fastmath=True)
+    @njit(fastmath=True, cache=True)
     def calculate_noise_matrix(X, ZX, 
                     M, N, k, Omega, epsilon, U, 
                     sqrt_n, sqrt_n1, sqrt_m_n1, sqrt_m1_n, sqrt_k_n1):
@@ -318,7 +318,7 @@ class TransmonCavity(base_system):
     
 
     @staticmethod
-    @njit
+    @njit(cache=True)
     def euler_step_current_old(alpha, z, dt, bx_scalar, k, kfill):
         '''Calculates current observable to enable comparison with
         experimental data using Euler method, z should correspond 
@@ -329,7 +329,7 @@ class TransmonCavity(base_system):
         return alpha
     
     @staticmethod
-    @njit
+    @njit(cache=True)
     def euler_step_current(alpha, z, dt, bx_scalar, k, kfill):
         '''Calculates current observable to enable comparison with
         experimental data using Euler method, z should correspond 
@@ -345,7 +345,7 @@ class TransmonCavity(base_system):
     
 
     @staticmethod
-    @njit
+    @njit(cache=True)
     def backward_euler_step_current(alpha, z, dt, bx_scalar, k, kfill):
         '''Calculates current observable to enable comparison with
         experimental data using backward Euler metod, z should correspond 

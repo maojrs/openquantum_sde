@@ -1,6 +1,7 @@
 import numpy as np
 
-from openquantum_sde.integrators import splittingRK4EM, Milstein
+from openquantum_sde.integrators.splitting_RK4_EM import splittingRK4EM
+from openquantum_sde.integrators.milstein import Milstein
 
 
 

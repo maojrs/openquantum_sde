@@ -10,7 +10,7 @@ class base_integrator:
 
 
     @staticmethod
-    @njit(fastmath = True)
+    @njit(fastmath = True, cache = True)
     def euler_substep(out, X, a, K):
         '''Euler sub-step: out = X + a*K.
         Written into the existing array out (no new array allocated).
@@ -30,5 +30,8 @@ class base_integrator:
 
 
     def integrate_step(self, X, BX, ZX, z, dt, system):
+        '''Advances X by one step of size dt (in place). Must leave the drift
+        (or the part not solved exactly) in BX: simulate_adaptive_dt uses it
+        to choose the next dt.'''
         raise NotImplementedError
     

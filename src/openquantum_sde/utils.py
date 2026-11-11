@@ -4,7 +4,7 @@ from numba import njit
 
 '''Utility functions for matrix operations and noise calculations.'''
 
-@njit
+@njit(cache=True)
 def complex_noise():
     '''Returns complex noise value'''
     x = np.random.normal()
@@ -13,14 +13,14 @@ def complex_noise():
     return z
 
 
-@njit
+@njit(cache=True)
 def seed_numba(seed):
     '''Seeds numba's random number generator (used by complex_noise).
     np.random.seed called from plain Python does not affect it.'''
     np.random.seed(seed)
 
 
-@njit
+@njit(cache=True)
 def complex_noise_matrix(Z):
     '''Fills matrix Z with complex-valued standard Wiener noise'''
     M, N = Z.shape
@@ -31,7 +31,7 @@ def complex_noise_matrix(Z):
             Z[m, n] = complex(x,y)/np.sqrt(2)
 
 
-@njit(fastmath = True)
+@njit(fastmath = True, cache = True)
 def diag_matrix_exponential(M,N,D, expD):
     '''Calculates matrix expoenntial expD of a diagonal matrix D '''
     for m in range(M):
@@ -39,7 +39,7 @@ def diag_matrix_exponential(M,N,D, expD):
             expD[m,n] = np.exp(D[m,n])
 
 
-@njit(fastmath = True)
+@njit(fastmath = True, cache = True)
 def calculate_norm(X):
     '''Calculates and returns norm of matrix X'''
     norm = 0.0
@@ -52,7 +52,7 @@ def calculate_norm(X):
     return norm
 
 
-@njit(fastmath = True)
+@njit(fastmath = True, cache = True)
 def calculate_num_atoms(X):
     '''Calculates expected number of atoms from state matrix X.
     X.shape = (M, N) with M = transmon level (num atoms), N=photon level'''
@@ -69,7 +69,7 @@ def calculate_num_atoms(X):
     return num_atoms/norm
 
 
-@njit(fastmath = True)
+@njit(fastmath = True, cache = True)
 def calculate_num_photons(X):
     '''Calculates expected value of number of photons from state matrix X.
     X.shape = (M, N) with M = transmon level (num atoms), N=photon level'''
@@ -84,7 +84,7 @@ def calculate_num_photons(X):
     return num_photons/norm
 
 
-@njit(fastmath=True)
+@njit(fastmath=True, cache=True)
 def calculate_num_photons_chunk(traj):
     """
     Calculates expected value of number of photons from trajectory chunk with

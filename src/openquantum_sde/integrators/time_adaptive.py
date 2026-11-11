@@ -2,7 +2,7 @@ from numba import njit
 from openquantum_sde.utils import calculate_norm
 
 
-@njit(fastmath=True)
+@njit(fastmath=True, cache=True)
 def choose_dt_from_drift(BX, dt_min, dt_max, tol, safety) :
     '''Returns a chosen dt depending on the norm of the drift matrix'''
     bnorm = calculate_norm(BX)

@@ -29,7 +29,7 @@ class splittingRK4EM(base_integrator):
 
 
     @staticmethod
-    @njit(fastmath = True)
+    @njit(fastmath = True, cache = True)
     def rk4_update(X, dt, K1, K2, K3, K4):
         '''Final RK4 update: X += dt/6 * (K1 + 2*K2 + 2*K3 + K4).
         Done in place in one pass (no new arrays allocated).'''
