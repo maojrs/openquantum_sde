@@ -10,7 +10,7 @@ SAFETY = 0.9
 
 
 def maybe_tqdm(iterable, use_tqdm, tqdm_kwargs=None, **kwargs):
-    '''For correct display of progres bar (serial and parallelized siulations)'''
+    '''For correct display of progress bar (serial and parallelized simulations)'''
     if not use_tqdm:
         return iterable
 

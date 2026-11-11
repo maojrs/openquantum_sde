@@ -6,11 +6,11 @@ from openquantum_sde.integrators.splitting_exact_euler import splittingExactEule
 
 class splittingExactHeun(splittingExactEuler):
     '''Integrator class for splitting method, using exact method for matrix diagonal for
-     half time step, then Huen method for remaining terms for a full time step plus another
+     half time step, then Heun method for remaining terms for a full time step plus another
     half time step of the exact solution.'''
 
     def precomputations(self, dt, system):
-        # Make sure conatiners used by integrator are defined in system
+        # Make sure containers used by integrator are defined in system
         M = system.M
         N = system.N
         system.expdiagBX = np.zeros([M,N], dtype=np.complex128)

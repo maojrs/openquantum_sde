@@ -6,14 +6,14 @@ from openquantum_sde.integrators.milstein import Milstein
 
 
 class splittingRK4Milstein(splittingRK4EM, Milstein):
-    '''Integrator class for a spliting method using Runge-Kutta 4 for the
+    '''Integrator class for a splitting method using Runge-Kutta 4 for the
     drift part (half time step), then Milstein for the stochastic part (full
-    timstep) and then again RK4 for another half-time step. The RK4 routines
+    time step) and then again RK4 for another half-time step. The RK4 routines
     are inherited from the parent class.'''
 
 
     def precomputations(self, dt, system):
-        # Make sure conatiners used by integrator are defined in system
+        # Make sure containers used by integrator are defined in system
         M = system.M
         N = system.N
         system.bx_scalar = np.zeros(1, dtype=np.complex128)

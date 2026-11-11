@@ -13,7 +13,7 @@ class Milstein(base_integrator):
     splittingExactIterativeCN (or splittingExactHeun, splittingRK4EM) is more robust.'''
 
     def precomputations(self, dt, system):
-        # Make sure conatiners used by integrator are defined in system
+        # Make sure containers used by integrator are defined in system
         M = system.M
         N = system.N
         system.bx_scalar = np.zeros(1, dtype=np.complex128)

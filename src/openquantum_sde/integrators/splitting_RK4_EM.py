@@ -6,9 +6,9 @@ from openquantum_sde.integrators.integrator import base_integrator
 
 
 class splittingRK4EM(base_integrator):
-    '''Integrator class for a spliting method using Runge-Kutta 4 for the
+    '''Integrator class for a splitting method using Runge-Kutta 4 for the
     drift part (half time step), then Euler Maruyama for the stochastic part (full
-    timstep) and then again RK4 for another half-time step'''
+    time step) and then again RK4 for another half-time step'''
 
     def __init__(self, M, N):
         super().__init__()
@@ -22,7 +22,7 @@ class splittingRK4EM(base_integrator):
     
 
     def precomputations(self, dt, system):
-        # Make sure conatiners used by integrator are defined in system
+        # Make sure containers used by integrator are defined in system
         M = system.M
         N = system.N
         system.bx_scalar = np.zeros(1, dtype=np.complex128)

@@ -4,7 +4,7 @@ from numba import njit
 from openquantum_sde.systems.system import base_system
 
 
-'''Main systems class with system specific parmeters + numba source routines'''
+'''Main systems class with system specific parameters + numba source routines'''
 
 class TransmonCavity(base_system):
     '''Coupled transmon-cavity system: routines to obtain the 
@@ -14,11 +14,11 @@ class TransmonCavity(base_system):
     a coupled transmon-cavity system by defining the corresponding
     drift and noise matrices.
 
-    State of the sytem given by:
+    State of the system given by:
     X: Probability amplitude (Matrix of C coefficients)
     X.shape = (M, N) with M = transmon level (num atoms), N=photon level
 
-    Main functions (note code is not re-used so the remain static under numba)
+    Main functions (note code is not re-used so they remain static under numba)
     ---------
     compute_exponential_drift_matrix_diagonal: Calculates exponential matrix of 
     diagonal part of the coherent part of the drift matrix
@@ -46,9 +46,9 @@ class TransmonCavity(base_system):
         self.U = U
         self.kfill = 1.0 * k
 
-        '''Auxiliary containers used by integrators. Initiliazed as 
-        None to avoid unnecesary memory usage. Ideally, they should be 
-        initilized here as None and with specific dimensions on 
+        '''Auxiliary containers used by integrators. Initialized as 
+        None to avoid unnecessary memory usage. Ideally, they should be 
+        initialized here as None and with specific dimensions on 
         integrator.precomputations. Add more if needed. '''
         self.bx_scalar = None #np.zeros(1, dtype=np.complex128)
         self.expdiagBX = None #np.zeros([M,N], dtype=np.complex128)
@@ -104,7 +104,7 @@ class TransmonCavity(base_system):
         '''
         Calculates the diagonal part of the drift matrix .
         Takes as input the system parameters and the precalculated
-        square root arrays. Only needs to be calculted once for a given dt.
+        square root arrays. Only needs to be calculated once for a given dt.
 
         X: Probability amplitude (Matrix of C coefficients)
         '''
@@ -148,7 +148,7 @@ class TransmonCavity(base_system):
                                  sqrt_n, sqrt_n1, sqrt_m_n1, sqrt_m1_n, sqrt_k_n1):
         '''
         Calculates the dissipative part of the drift matrix.
-        Takes as input only the k parmeter and a precalculated
+        Takes as input only the k parameter and a precalculated
         square root array.
 
         X: Probability amplitude (Matrix of C coefficients)
@@ -183,7 +183,7 @@ class TransmonCavity(base_system):
                      sqrt_n, sqrt_n1, sqrt_m_n1, sqrt_m1_n, sqrt_k_n1):
         '''
         Calculates the drift scalar part only.
-        Takes as input only the k parmeter and a precalculated
+        Takes as input only the k parameter and a precalculated
         square root array.
 
         X: Probability amplitude (Matrix of C coefficients)
@@ -348,7 +348,7 @@ class TransmonCavity(base_system):
     @njit(cache=True)
     def backward_euler_step_current(alpha, z, dt, bx_scalar, k, kfill):
         '''Calculates current observable to enable comparison with
-        experimental data using backward Euler metod, z should correspond 
+        experimental data using backward Euler method, z should correspond 
         to the complex valued noise used to calculate the noise matrix ZX.
         Note bx_scalar must be evaluated at the end of the time step'''
         if k == 0.0:

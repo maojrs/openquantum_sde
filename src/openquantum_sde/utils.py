@@ -33,7 +33,7 @@ def complex_noise_matrix(Z):
 
 @njit(fastmath = True, cache = True)
 def diag_matrix_exponential(M,N,D, expD):
-    '''Calculates matrix expoenntial expD of a diagonal matrix D '''
+    '''Calculates matrix exponential expD of a diagonal matrix D '''
     for m in range(M):
         for n in range(N):
             expD[m,n] = np.exp(D[m,n])
@@ -88,7 +88,7 @@ def calculate_num_photons(X):
 def calculate_num_photons_chunk(traj):
     """
     Calculates expected value of number of photons from trajectory chunk with
-    elment state matrix X.
+    element state matrix X.
     traj.shape = (T, M, N) with T = number of time steps, M = transmon level
      and N = photon level. The average number corresponds to total_photons/total_norm
     """
@@ -109,7 +109,7 @@ def calculate_num_photons_chunk(traj):
 
 def filter_trajectory(traj, traj_current, minima, tolerance):
     '''Filter trajectory to only include data around a minima in the current phase 
-    space with a given tolderance radius'''
+    space with a given tolerance radius'''
 
     #Build boolean mask from traj_current
     mask = np.abs(traj_current - minima) <= tolerance

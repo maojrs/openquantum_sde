@@ -2,7 +2,7 @@ from numba import njit
 
 
 class base_integrator:
-    """Abstract base class for systentegrators of stochastic Schrodinger equations.
+    """Abstract base class for integrators of stochastic Schrodinger equations.
     The child class should define at least one function called integrate_step."""
 
     def __init__(self):

@@ -6,7 +6,7 @@ from openquantum_sde.utils import calculate_num_atoms, filter_trajectory
 
 
 def plot_current(times, traj_current, output_dir = None, fname = None, title = None, savefig = False):
-    '''Plots current (real, imag and squared norm) as a fucntion of time'''
+    '''Plots current (real, imag and squared norm) as a function of time'''
     fig, ax = plt.subplots(figsize=(6, 4), dpi=120, constrained_layout=True)
     ax.plot(times, traj_current.real, label=r'Re[$\alpha$]', lw=0.5)
     ax.plot(times, traj_current.imag, label=r'Im[$\alpha$]', lw=0.5)

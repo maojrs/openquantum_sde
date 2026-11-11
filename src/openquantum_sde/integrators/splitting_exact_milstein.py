@@ -18,7 +18,7 @@ class splittingExactMilstein(splittingExactEuler, Milstein):
     
 
     def precomputations(self, dt, system):
-        # Make sure conatiners used by integrator are defined in system
+        # Make sure containers used by integrator are defined in system
         M = system.M
         N = system.N
         system.expdiagBX = np.zeros([M,N], dtype=np.complex128)
