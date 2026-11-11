@@ -39,8 +39,13 @@ class splittingExactEuler(base_integrator):
     @staticmethod
     @njit(fastmath = True)
     def tameDrift(dt, BX):
+        '''Tames the drift in place: BX <- BX / (1 + dt*||BX||)'''
         normBX = calculate_norm(BX)
-        BX = BX / (1 + dt * normBX)
+        factor = 1.0 / (1.0 + dt * normBX)
+        M, N = BX.shape
+        for m in range(M):
+            for n in range(N):
+                BX[m, n] *= factor
 
 
 
