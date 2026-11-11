@@ -1,3 +1,4 @@
+from numba import njit
 
 
 class base_integrator:
@@ -6,7 +7,19 @@ class base_integrator:
 
     def __init__(self):
         pass
-    
+
+
+    @staticmethod
+    @njit(fastmath = True)
+    def euler_substep(out, X, a, K):
+        '''Euler sub-step: out = X + a*K.
+        Written into the existing array out (no new array allocated).
+        out may be the same array as X.'''
+        M, N = X.shape
+        for m in range(M):
+            for n in range(N):
+                out[m, n] = X[m, n] + a * K[m, n]
+
 
     def precomputations(self, dt, system):
         pass

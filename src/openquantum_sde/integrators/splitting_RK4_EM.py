@@ -1,4 +1,5 @@
 import numpy as np
+from numba import njit
 
 from openquantum_sde.integrators.integrator import base_integrator
 
@@ -25,32 +26,48 @@ class splittingRK4EM(base_integrator):
         M = system.M
         N = system.N
         system.bx_scalar = np.zeros(1, dtype=np.complex128)
-        
+
+
+    @staticmethod
+    @njit(fastmath = True)
+    def rk4_update(X, dt, K1, K2, K3, K4):
+        '''Final RK4 update: X += dt/6 * (K1 + 2*K2 + 2*K3 + K4).
+        Done in place in one pass (no new arrays allocated).'''
+        c = dt / 6.0
+        M, N = X.shape
+        for m in range(M):
+            for n in range(N):
+                X[m, n] += c * (K1[m, n] + 2.0*K2[m, n] + 2.0*K3[m, n] + K4[m, n])
+
 
     def rk4_drift_step(self, X, dt, BX, system):
 
 
         # ---- K1 (BX) ----
-        system.calculate_drift_matrix(X, self.K1, 
+        system.calculate_drift_matrix(X, self.K1,
                                       system.bx_scalar, *system.kernel_args())
-        self.TMP = X + 0.5 * dt * self.K1
+        # TMP = X + 0.5*dt*K1
+        self.euler_substep(self.TMP, X, 0.5 * dt, self.K1)
 
         # ---- K2 ----
-        system.calculate_drift_matrix(self.TMP, self.K2, 
+        system.calculate_drift_matrix(self.TMP, self.K2,
                                       system.bx_scalar, *system.kernel_args())
-        self.TMP = X + 0.5 * dt * self.K2
+        # TMP = X + 0.5*dt*K2
+        self.euler_substep(self.TMP, X, 0.5 * dt, self.K2)
 
         # ---- K3 ----
-        system.calculate_drift_matrix(self.TMP, self.K3, 
+        system.calculate_drift_matrix(self.TMP, self.K3,
                                       system.bx_scalar, *system.kernel_args())
-        self.TMP = X + dt * self.K3
+        # TMP = X + dt*K3
+        self.euler_substep(self.TMP, X, dt, self.K3)
 
         # ---- K4 ----
-        system.calculate_drift_matrix(self.TMP, self.K4, 
+        system.calculate_drift_matrix(self.TMP, self.K4,
                                       system.bx_scalar, *system.kernel_args())
 
         # ---- final update ----
-        X += (dt / 6.0) * (self.K1 + 2*self.K2 + 2*self.K3 + self.K4)
+        # X += dt/6 * (K1 + 2*K2 + 2*K3 + K4)
+        self.rk4_update(X, dt, self.K1, self.K2, self.K3, self.K4)
 
         # Store drift at start of sub-step in BX (used e.g. by adaptive dt)
         BX[:] = self.K1

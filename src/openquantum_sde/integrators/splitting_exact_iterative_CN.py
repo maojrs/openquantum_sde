@@ -23,8 +23,7 @@ class splittingExactIterativeCN(splittingExactEuler):
             # Calculate matrix exponentials for exact solution
             system.compute_exponential_drift_matrix_diagonal(system.expdiagBX, 0.5*dt, *system.kernel_args())
 
-    @staticmethod
-    def integrate_step_no_taming(X, BX, ZX, z, dt, system):
+    def integrate_step_no_taming(self, X, BX, ZX, z, dt, system):
         """
         Strang splitting + Crank-Nicolson-type correction
         (non-dissipative, much better amplitude behavior)
@@ -35,21 +34,25 @@ class splittingExactIterativeCN(splittingExactEuler):
         # 1. Exact diagonal coherent drift solution for half time step
         X *= system.expdiagBX
 
-        # 2. Calculate noise 
+        # 2. Calculate noise increment, stored in ZX: noise = ZX * z * sqrt(dt)
         system.calculate_noise_matrix(X, ZX, *system.kernel_args())
-        noise = ZX * z * sqrt_dt
+        ZX *= z * sqrt_dt
 
-        # 3. Nondiagonal drift at current state 
+        # 3. Nondiagonal drift at current state
         system.calculate_drift_matrix_nondiagonal(X, system.BXtmp, system.bx_scalar, *system.kernel_args())
 
-        # 4 Predictor (Euler-Maruyama)
-        system.Xk = X + dt * system.BXtmp + noise
+        # 4 Predictor (Euler-Maruyama): Xk = X + dt*BXtmp + noise
+        self.euler_substep(system.Xk, X, dt, system.BXtmp)
+        system.Xk += ZX
 
         # 4. Crank-Nicolson iterations (2 usually enough)
-        for _ in range(2):   
+        for _ in range(2):
             system.calculate_drift_matrix_nondiagonal(system.Xk, BX, system.bx_scalar, *system.kernel_args())
 
-            system.Xk = X + 0.5 * dt * (system.BXtmp + BX) + noise
+            # Xk = X + 0.5*dt*(BXtmp + BX) + noise
+            self.euler_substep(system.Xk, X, 0.5 * dt, system.BXtmp)
+            self.euler_substep(system.Xk, system.Xk, 0.5 * dt, BX)
+            system.Xk += ZX
 
         # Write back
         X[:] = system.Xk
@@ -70,27 +73,31 @@ class splittingExactIterativeCN(splittingExactEuler):
         # 1. Exact diagonal coherent drift solution for half time step
         X *= system.expdiagBX
 
-        # 2. Calculate noise 
+        # 2. Calculate noise increment, stored in ZX: noise = ZX * z * sqrt(dt)
         system.calculate_noise_matrix(X, ZX, *system.kernel_args())
-        noise = ZX * z * sqrt_dt
+        ZX *= z * sqrt_dt
 
-        # 3. Nondiagonal drift at current state 
+        # 3. Nondiagonal drift at current state
         system.calculate_drift_matrix_nondiagonal(X, system.BXtmp, system.bx_scalar, *system.kernel_args())
-        
+
         # taming
         self.tameDrift(dt, system.BXtmp)
 
-        # 4 Predictor (Euler-Maruyama)
-        system.Xk = X + dt * system.BXtmp + noise
+        # 4 Predictor (Euler-Maruyama): Xk = X + dt*BXtmp + noise
+        self.euler_substep(system.Xk, X, dt, system.BXtmp)
+        system.Xk += ZX
 
         # 4. Crank-Nicolson iterations (2 usually enough)
-        for _ in range(2):   
+        for _ in range(2):
             system.calculate_drift_matrix_nondiagonal(system.Xk, BX, system.bx_scalar, *system.kernel_args())
 
             # taming
             self.tameDrift(dt, BX)
 
-            system.Xk = X + 0.5 * dt * (system.BXtmp + BX) + noise
+            # Xk = X + 0.5*dt*(BXtmp + BX) + noise
+            self.euler_substep(system.Xk, X, 0.5 * dt, system.BXtmp)
+            self.euler_substep(system.Xk, system.Xk, 0.5 * dt, BX)
+            system.Xk += ZX
 
         # Write back
         X[:] = system.Xk
