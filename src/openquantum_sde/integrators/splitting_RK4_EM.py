@@ -52,6 +52,9 @@ class splittingRK4EM(base_integrator):
         # ---- final update ----
         X += (dt / 6.0) * (self.K1 + 2*self.K2 + 2*self.K3 + self.K4)
 
+        # Store drift at start of sub-step in BX (used e.g. by adaptive dt)
+        BX[:] = self.K1
+
 
     @staticmethod
     def em_noise_step(X, dt, ZX, z, system):

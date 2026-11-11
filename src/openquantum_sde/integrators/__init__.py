@@ -12,6 +12,6 @@ from .splitting_RK4_milstein import splittingRK4Milstein
 from .time_adaptive import choose_dt_from_drift
 
 __all__ = ["EulerMaruyama", "Milstein", "stochasticHeun", 
-           "splittingExactEuler", "splittingExactMidpointEuler", "splittingExactSemiImplicitEuler", 
+           "splittingExactEuler", "splittingExactMidpointEuler", "splittingExactIterativeCN",
            "splittingExactMilstein", "splittingExactHeun", 
            "splittingRK4EM", "splittingRK4Milstein", "choose_dt_from_drift"]

@@ -144,7 +144,7 @@ def simulate_adaptive_dt(X0, nsteps_max, dt_min, dt_max, tol,
         # Calculate current
         if calculate_current:
             system.calculate_drift_scalar(X, system.bx_scalar, *system.kernel_args()) # Only if needed to recalculate due to integrator
-            alpha = system.backward_euler_step_current(alpha, z, dt, system.bx_scalar, system.kfill , system.k)
+            alpha = system.backward_euler_step_current(alpha, z, dt, system.bx_scalar, system.k, system.kfill)
             #alpha = system.euler_step_current(alpha, z, dt, system.bx_scalar, system.kfill , system.k)
 
         

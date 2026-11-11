@@ -1,4 +1,4 @@
-from io import *
+from .io import *
 from .plotting import *
 from .simulation import *
 from .utils import *
