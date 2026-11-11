@@ -107,7 +107,6 @@ def calculate_num_photons_chunk(traj):
     return total_photons, total_norm
 
 
-njit(fastmath = True)
 def filter_trajectory(traj, traj_current, minima, tolerance):
     '''Filter trajectory to only include data around a minima in the current phase 
     space with a given tolderance radius'''
@@ -153,6 +152,6 @@ def find_minima_fast(traj_current, bins=5, threshold_ratio=0.005):
         centers.append(cx + 1j * cy)
     
     minimas = np.array(centers)
-    print(minimas)
+    #print(minimas)
     
     return minimas
