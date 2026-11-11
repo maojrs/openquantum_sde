@@ -14,6 +14,13 @@ def complex_noise():
 
 
 @njit
+def seed_numba(seed):
+    '''Seeds numba's random number generator (used by complex_noise).
+    np.random.seed called from plain Python does not affect it.'''
+    np.random.seed(seed)
+
+
+@njit
 def complex_noise_matrix(Z):
     '''Fills matrix Z with complex-valued standard Wiener noise'''
     M, N = Z.shape

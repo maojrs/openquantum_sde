@@ -1,7 +1,7 @@
 import numpy as np
 from tqdm import tqdm
 
-from openquantum_sde.utils import calculate_norm, complex_noise
+from openquantum_sde.utils import calculate_norm, complex_noise, seed_numba
 from openquantum_sde.integrators.time_adaptive import choose_dt_from_drift
 
 
@@ -19,11 +19,14 @@ def maybe_tqdm(iterable, use_tqdm, tqdm_kwargs=None, **kwargs):
 def simulate_fixed_dt(X0, nsteps, dt, 
                       calculate_current=False,
                       save_every=1, renormalize_every=50,
-                      progress_bar=True, tqdm_kwargs=None,  
-                      integrator=None, system=None):
+                      progress_bar=True, tqdm_kwargs=None,
+                      integrator=None, system=None, seed=None):
 
     if system == None or integrator == None:
         raise Exception("Need to specify integrator and/or system and system.kernel_args()")
+
+    if seed is not None:
+        seed_numba(seed)
 
     print_every = max(1, nsteps // 20)   # 5% updates
 
@@ -98,10 +101,13 @@ def simulate_adaptive_dt(X0, nsteps_max, dt_min, dt_max, tol,
                          calculate_current=False,
                          save_every=1, renormalize_every=1,
                          progress_bar=True, tqdm_kwargs=None,
-                         integrator=None, system=None):
+                         integrator=None, system=None, seed=None):
 
     if system == None or integrator == None:
         raise Exception("Need to specify integrator and/or system and system.kernel_args()")
+
+    if seed is not None:
+        seed_numba(seed)
     
     print_every = max(1, nsteps_max // 20)   # 5% updates
     
