@@ -5,8 +5,8 @@ Numerical integrators for stochastic Schrödinger equations (SSEs) in open quant
 ## Overview
 
 - Simulates quantum trajectories of open quantum systems under continuous (heterodyne) measurement.
+- The included system is a circuit-QED model (superconducting transmon coupled to a microwave cavity); the integrators are general.
 - The state is a matrix `X[m, n]` of probability amplitudes (e.g. transmon level `m`, photon number `n`).
-- Includes a coupled transmon–cavity system (`TransmonCavity`) and several SSE integrators.
 - Time stepping with fixed or adaptive `dt`, optional seeding for reproducible runs.
 - Computes the filtered measurement current and observables (photon number, transmon populations).
 - Kernels are compiled with [numba](https://numba.pydata.org/) for speed.
@@ -15,7 +15,7 @@ Package layout (`src/openquantum_sde/`):
 
 | Module | Contents |
 |---|---|
-| `systems/` | Physical systems (drift and noise terms), e.g. `TransmonCavity` |
+| `systems/` | Physical systems (drift and noise terms), e.g. `TransmonCavity` (circuit QED) |
 | `integrators/` | SSE integrators (Euler–Maruyama, Milstein, Heun, splitting methods, RK4) |
 | `simulation.py` | `simulate_fixed_dt`, `simulate_adaptive_dt` |
 | `utils.py` | Noise, seeding, norms and observables |
