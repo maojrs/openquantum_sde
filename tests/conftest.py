@@ -3,7 +3,38 @@
 import numpy as np
 import pytest
 
+from openquantum_sde.integrators import (
+    EulerMaruyama, Milstein, stochasticHeun,
+    splittingExactEuler, splittingExactMidpointEuler, splittingExactIterativeCN,
+    splittingExactHeun, splittingExactMilstein, splittingRK4EM, splittingRK4Milstein,
+)
 from openquantum_sde.systems import TransmonCavity
+
+
+# All integrators, including the tamed variants (built for a given system size M, N)
+ALL_INTEGRATORS = {
+    "EulerMaruyama":                     lambda M, N: EulerMaruyama(),
+    "Milstein":                          lambda M, N: Milstein(),
+    "stochasticHeun":                    lambda M, N: stochasticHeun(),
+    "splittingExactEuler":               lambda M, N: splittingExactEuler(),
+    "splittingExactEuler_tamed":         lambda M, N: splittingExactEuler(taming=True),
+    "splittingExactMidpointEuler":       lambda M, N: splittingExactMidpointEuler(),
+    "splittingExactMidpointEuler_tamed": lambda M, N: splittingExactMidpointEuler(taming=True),
+    "splittingExactIterativeCN":         lambda M, N: splittingExactIterativeCN(),
+    "splittingExactIterativeCN_tamed":   lambda M, N: splittingExactIterativeCN(taming=True),
+    "splittingExactHeun":                lambda M, N: splittingExactHeun(),
+    "splittingExactHeun_tamed":          lambda M, N: splittingExactHeun(taming=True),
+    "splittingExactMilstein":            lambda M, N: splittingExactMilstein(),
+    "splittingExactMilstein_tamed":      lambda M, N: splittingExactMilstein(taming=True),
+    "splittingRK4EM":                    lambda M, N: splittingRK4EM(M, N),
+    "splittingRK4Milstein":              lambda M, N: splittingRK4Milstein(M, N),
+}
+
+
+@pytest.fixture(params=ALL_INTEGRATORS.values(), ids=ALL_INTEGRATORS.keys())
+def make_integrator(request):
+    '''Factory make_integrator(M, N) for each integrator (tests using it run once per integrator)'''
+    return request.param
 
 
 @pytest.fixture

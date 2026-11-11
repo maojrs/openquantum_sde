@@ -3,44 +3,25 @@
 import numpy as np
 import pytest
 
-from openquantum_sde.integrators import (
-    EulerMaruyama, Milstein, stochasticHeun,
-    splittingExactEuler, splittingExactMidpointEuler, splittingExactIterativeCN,
-    splittingExactHeun, splittingExactMilstein, splittingRK4EM, splittingRK4Milstein,
-)
+from openquantum_sde.integrators import EulerMaruyama
 from openquantum_sde.simulation import simulate_fixed_dt, simulate_adaptive_dt
 
 
 NSTEPS, DT, SAVE_EVERY = 200, 1e-3, 10
 DT_MIN, DT_MAX, TOL = 1e-5, 1e-3, 1e-3
 
-# All integrators, including the tamed variants (built for a given system size M, N)
-INTEGRATORS = {
-    "EulerMaruyama":                     lambda M, N: EulerMaruyama(),
-    "Milstein":                          lambda M, N: Milstein(),
-    "stochasticHeun":                    lambda M, N: stochasticHeun(),
-    "splittingExactEuler":               lambda M, N: splittingExactEuler(),
-    "splittingExactEuler_tamed":         lambda M, N: splittingExactEuler(taming=True),
-    "splittingExactMidpointEuler":       lambda M, N: splittingExactMidpointEuler(),
-    "splittingExactMidpointEuler_tamed": lambda M, N: splittingExactMidpointEuler(taming=True),
-    "splittingExactIterativeCN":         lambda M, N: splittingExactIterativeCN(),
-    "splittingExactIterativeCN_tamed":   lambda M, N: splittingExactIterativeCN(taming=True),
-    "splittingExactHeun":                lambda M, N: splittingExactHeun(),
-    "splittingExactHeun_tamed":          lambda M, N: splittingExactHeun(taming=True),
-    "splittingExactMilstein":            lambda M, N: splittingExactMilstein(),
-    "splittingExactMilstein_tamed":      lambda M, N: splittingExactMilstein(taming=True),
-    "splittingRK4EM":                    lambda M, N: splittingRK4EM(M, N),
-    "splittingRK4Milstein":              lambda M, N: splittingRK4Milstein(M, N),
-}
+
+def euler_maruyama(M, N):
+    return EulerMaruyama()
 
 
-def run_fixed(system, X0, make_integrator=INTEGRATORS["EulerMaruyama"], seed=0, save_every=SAVE_EVERY):
-    return simulate_fixed_dt(X0, NSTEPS, DT, calculate_current=True, save_every=save_every,
+def run_fixed(system, X0, make_integrator=euler_maruyama, seed=0):
+    return simulate_fixed_dt(X0, NSTEPS, DT, calculate_current=True, save_every=SAVE_EVERY,
                              renormalize_every=1, progress_bar=False, seed=seed,
                              integrator=make_integrator(system.M, system.N), system=system)
 
 
-def run_adaptive(system, X0, make_integrator=INTEGRATORS["EulerMaruyama"], seed=0):
+def run_adaptive(system, X0, make_integrator=euler_maruyama, seed=0):
     return simulate_adaptive_dt(X0, NSTEPS, DT_MIN, DT_MAX, TOL, calculate_current=True,
                                 save_every=1, renormalize_every=1, progress_bar=False, seed=seed,
                                 integrator=make_integrator(system.M, system.N), system=system)
@@ -50,7 +31,6 @@ def run_adaptive(system, X0, make_integrator=INTEGRATORS["EulerMaruyama"], seed=
 # Every integrator
 # =========================
 
-@pytest.mark.parametrize("make_integrator", INTEGRATORS.values(), ids=INTEGRATORS.keys())
 def test_fixed_dt_returns_normalized_states_on_regular_times(make_integrator, system, vacuum):
     dt_array, times, traj, current = run_fixed(system, vacuum, make_integrator)
     nsave = NSTEPS // SAVE_EVERY + 1
@@ -61,7 +41,6 @@ def test_fixed_dt_returns_normalized_states_on_regular_times(make_integrator, sy
     np.testing.assert_allclose(dt_array, DT, rtol=1e-9)
 
 
-@pytest.mark.parametrize("make_integrator", INTEGRATORS.values(), ids=INTEGRATORS.keys())
 def test_adaptive_dt_varies_within_bounds(make_integrator, system, vacuum):
     dt_array, _, traj, _ = run_adaptive(system, vacuum, make_integrator)
     assert np.all(np.isfinite(traj))
