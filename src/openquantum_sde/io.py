@@ -17,7 +17,8 @@ def save_trajectory(fname, output_dir, time_array, traj, traj_current, simid=Non
         f.create_dataset('traj_current', data=traj_current, compression='gzip')
 
         # Minimal metadata
-        f.attrs['sim_id'] = simid
+        if simid is not None:
+            f.attrs['sim_id'] = simid
 
 
 def load_trajectory(fname, output_dir):

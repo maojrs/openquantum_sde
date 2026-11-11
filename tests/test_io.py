@@ -36,6 +36,13 @@ def test_save_and_load_trajectory_roundtrip(saved_trajectory):
         np.testing.assert_array_equal(loaded, original)
 
 
+def test_save_trajectory_without_simid(saved_trajectory):
+    folder, *saved = saved_trajectory
+    save_trajectory("no_simid", folder, *saved)
+    for loaded, original in zip(load_trajectory("no_simid", folder), saved):
+        np.testing.assert_array_equal(loaded, original)
+
+
 def test_load_trajectory_chunk_returns_first_steps(saved_trajectory):
     folder, _, traj, _ = saved_trajectory
     np.testing.assert_array_equal(load_trajectory_chunk("traj", folder, 5), traj[:5])
